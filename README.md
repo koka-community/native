@@ -1,9 +1,13 @@
-[![Coverage Status](https://coveralls.io/repos/github/dart-lang/native/badge.svg?branch=main)](https://coveralls.io/github/dart-lang/native?branch=main)
-
 ## Overview
 
-This repository is home to Dart packages related to FFI and native assets
+This repository is home to Koka packages related to FFI and native assets
 building and bundling.
+
+> [!WARNING]
+> This repository is a WIP, and the packages are currently basically not implemented
+> The plan is to reuse the generators from the Dart language, but generate Koka code.
+> Eventually we might transition to a more optimized workflow for Koka, without all of the extras we don't need. 
+> Every once in a while we should sync from the upstream Dart project, the methodology for doing so is still being determined.
 
 ## Packages
 
@@ -17,11 +21,3 @@ building and bundling.
 | [native_assets_builder](pkgs/native_assets_builder/) | This package is the backend that invokes build hooks. | [![pub package](https://img.shields.io/pub/v/native_assets_builder.svg)](https://pub.dev/packages/native_assets_builder) |
 | [native_assets_cli](pkgs/native_assets_cli/) | A library that contains the argument and file formats for implementing a native assets CLI. | [![pub package](https://img.shields.io/pub/v/native_assets_cli.svg)](https://pub.dev/packages/native_assets_cli) |
 | [native_toolchain_c](pkgs/native_toolchain_c/) | A library to invoke the native C compiler installed on the host machine. | [![pub package](https://img.shields.io/pub/v/native_toolchain_c.svg)](https://pub.dev/packages/native_toolchain_c) |
-
-## Publishing automation
-
-For information about our publishing automation and release process, see
-https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
-
-For additional information about contributing, see our
-[contributing](CONTRIBUTING.md) page.
