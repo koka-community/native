@@ -4,7 +4,7 @@ This repository is home to Koka packages related to FFI and native assets
 building and bundling.
 
 > [!WARNING]
-> This repository is a WIP, and the packages are currently basically not implemented
+> This repository is a WIP, and the packages are currently basically not implemented.
 > The plan is to reuse the generators from the Dart language, but generate Koka code.
 > Eventually we might transition to a more optimized workflow for Koka, without all of the extras we don't need. 
 > Every once in a while we should sync from the upstream Dart project, the methodology for doing so is still being determined.
