@@ -42,7 +42,7 @@ class EnumClass extends BindingType {
     final enclosingClassName = name;
 
     if (dartDoc != null) {
-      s.write(makeDartDoc(dartDoc!));
+      s.write(makeDoc(dartDoc!));
     }
 
     /// Adding [enclosingClassName] because dart doesn't allow class member
@@ -50,19 +50,25 @@ class EnumClass extends BindingType {
     final localUniqueNamer = UniqueNamer({enclosingClassName});
 
     // Print enclosing class.
-    s.write('abstract class $enclosingClassName {\n');
-    const depth = '  ';
+    final typeName = enclosingClassName.toLowerCase();
+    s.writeln('type ${typeName}');
+    const indent = '  ';
     for (final ec in enumConstants) {
       final enumValueName = localUniqueNamer.makeUnique(ec.name);
       if (ec.dartDoc != null) {
-        s.write('$depth/// ');
-        s.writeAll(ec.dartDoc!.split('\n'), '\n$depth/// ');
+        s.write('$indent// ');
+        s.writeAll(ec.dartDoc!.split('\n'), '\n$indent// ');
         s.write('\n');
       }
-      s.write('${depth}static const int $enumValueName = ${ec.value};\n');
+      s.writeln('${indent}$enumValueName');
     }
-    s.write('}\n\n');
-
+    s.writeln();
+    s.writeln('pub ${typeName}/int(i: ${typeName}): int');
+    s.writeln('  match i');
+    for (final ec in enumConstants) {
+      final enumValueName = localUniqueNamer.makeUnique(ec.name);
+      s.writeln('    | ${enumValueName} -> ${ec.value}');
+    }
     return BindingString(
         type: BindingStringType.enumClass, string: s.toString());
   }

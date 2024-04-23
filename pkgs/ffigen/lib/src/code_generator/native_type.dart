@@ -26,20 +26,20 @@ enum SupportedNativeType {
 /// Represents a primitive native type, such as float.
 class NativeType extends Type {
   static const _primitives = <SupportedNativeType, NativeType>{
-    SupportedNativeType.Void: NativeType._('Void', 'void', null),
-    SupportedNativeType.Char: NativeType._('Uint8', 'int', '0'),
-    SupportedNativeType.Int8: NativeType._('Int8', 'int', '0'),
-    SupportedNativeType.Int16: NativeType._('Int16', 'int', '0'),
-    SupportedNativeType.Int32: NativeType._('Int32', 'int', '0'),
-    SupportedNativeType.Int64: NativeType._('Int64', 'int', '0'),
-    SupportedNativeType.Uint8: NativeType._('Uint8', 'int', '0'),
-    SupportedNativeType.Uint16: NativeType._('Uint16', 'int', '0'),
-    SupportedNativeType.Uint32: NativeType._('Uint32', 'int', '0'),
-    SupportedNativeType.Uint64: NativeType._('Uint64', 'int', '0'),
-    SupportedNativeType.Float: NativeType._('Float', 'double', '0.0'),
-    SupportedNativeType.Double: NativeType._('Double', 'double', '0.0'),
-    SupportedNativeType.IntPtr: NativeType._('IntPtr', 'int', '0'),
-    SupportedNativeType.UintPtr: NativeType._('UintPtr', 'int', '0'),
+    SupportedNativeType.Void: NativeType._('()', '()', '()'),
+    SupportedNativeType.Char: NativeType._('int8', 'int8', '0'),
+    SupportedNativeType.Int8: NativeType._('int8', 'int8', '0'),
+    SupportedNativeType.Int16: NativeType._('int16', 'int16', '0'),
+    SupportedNativeType.Int32: NativeType._('int32', 'int32', '0'),
+    SupportedNativeType.Int64: NativeType._('int64', 'int64', '0'),
+    SupportedNativeType.Uint8: NativeType._('int8', 'int8', '0'),
+    SupportedNativeType.Uint16: NativeType._('int16', 'int16', '0'),
+    SupportedNativeType.Uint32: NativeType._('int32', 'int32', '0'),
+    SupportedNativeType.Uint64: NativeType._('int64', 'int64', '0'),
+    SupportedNativeType.Float: NativeType._('float32', 'float32', '0.0'),
+    SupportedNativeType.Double: NativeType._('float64', 'float64', '0.0'),
+    SupportedNativeType.IntPtr: NativeType._('intptr_t', 'intptr_t', '0'),
+    SupportedNativeType.UintPtr: NativeType._('intptr_t', 'intptr_t', '0'),
   };
 
   final String _cType;
@@ -48,10 +48,11 @@ class NativeType extends Type {
 
   const NativeType._(this._cType, this._dartType, this._defaultValue);
 
+  const NativeType.other(this._cType, this._dartType, this._defaultValue);
   factory NativeType(SupportedNativeType type) => _primitives[type]!;
 
   @override
-  String getCType(Writer w) => '${w.ffiLibraryPrefix}.$_cType';
+  String getCType(Writer w) => '$_cType';
 
   @override
   String getFfiDartType(Writer w) => _dartType;
@@ -70,7 +71,7 @@ class NativeType extends Type {
 }
 
 class BooleanType extends NativeType {
-  const BooleanType._() : super._('Bool', 'bool', 'false');
+  const BooleanType._() : super._('bool', 'bool', 'false');
   static const _boolean = BooleanType._();
   factory BooleanType() => _boolean;
 

@@ -135,8 +135,7 @@ class NativeFunc extends Type {
   }
 
   @override
-  String getCType(Writer w) =>
-      '${w.ffiLibraryPrefix}.NativeFunction<${_type.getCType(w)}>';
+  String getCType(Writer w) => '${_type.getCType(w)}';
 
   @override
   String getFfiDartType(Writer w) => getCType(w);
@@ -145,8 +144,8 @@ class NativeFunc extends Type {
   bool get sameFfiDartAndCType => true;
 
   @override
-  String toString() => 'NativeFunction<${_type.toString()}>';
+  String toString() => '${_type.toString()}';
 
   @override
-  String cacheKey() => 'NatFn(${_type.cacheKey()})';
+  String cacheKey() => '${_type.cacheKey()}';
 }

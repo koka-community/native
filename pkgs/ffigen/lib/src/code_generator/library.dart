@@ -129,9 +129,6 @@ class Library {
   void generateFile(File file, {bool format = true}) {
     if (!file.existsSync()) file.createSync(recursive: true);
     file.writeAsStringSync(generate());
-    if (format) {
-      _dartFormat(file.path);
-    }
   }
 
   /// Generates [file] with symbol output yaml.

@@ -5,7 +5,9 @@
 import 'package:ffigen/src/code_generator.dart' show SupportedNativeType;
 import 'package:ffigen/src/code_generator/imports.dart';
 
-var cxTypeKindToImportedTypes = <String, ImportedType>{
+import '../../code_generator/native_type.dart';
+
+var cxTypeKindToImportedTypes = <String, NativeType>{
   'void': voidType,
   'unsigned char': unsignedCharType,
   'signed char': signedCharType,
@@ -35,7 +37,7 @@ var suportedTypedefToSuportedNativeType = <String, SupportedNativeType>{
   'uintptr_t': SupportedNativeType.UintPtr,
 };
 
-var supportedTypedefToImportedType = <String, ImportedType>{
+var supportedTypedefToImportedType = <String, NativeType>{
   'size_t': sizeType,
   'wchar_t': wCharType,
 };

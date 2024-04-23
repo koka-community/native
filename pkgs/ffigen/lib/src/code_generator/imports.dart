@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'native_type.dart';
 import 'type.dart';
 import 'writer.dart';
 
@@ -93,27 +94,26 @@ final objcPkgImport = LibraryImport(
     importPathWhenImportedByPackageObjC: '../objective_c.dart');
 final self = LibraryImport('self', '');
 
-final voidType = ImportedType(ffiImport, 'Void', 'void');
+final voidType = NativeType.other('()', '()', '()');
 
-final unsignedCharType = ImportedType(ffiImport, 'UnsignedChar', 'int', '0');
-final signedCharType = ImportedType(ffiImport, 'SignedChar', 'int', '0');
-final charType = ImportedType(ffiImport, 'Char', 'int', '0');
-final unsignedShortType = ImportedType(ffiImport, 'UnsignedShort', 'int', '0');
-final shortType = ImportedType(ffiImport, 'Short', 'int', '0');
-final unsignedIntType = ImportedType(ffiImport, 'UnsignedInt', 'int', '0');
-final intType = ImportedType(ffiImport, 'Int', 'int', '0');
-final unsignedLongType = ImportedType(ffiImport, 'UnsignedLong', 'int', '0');
-final longType = ImportedType(ffiImport, 'Long', 'int', '0');
-final unsignedLongLongType =
-    ImportedType(ffiImport, 'UnsignedLongLong', 'int', '0');
-final longLongType = ImportedType(ffiImport, 'LongLong', 'int', '0');
+final unsignedCharType = NativeType.other('int8', 'int8', '0');
+final signedCharType = NativeType.other('int8', 'int8', '0');
+final charType = NativeType.other('int8', 'int8', '0');
+final unsignedShortType = NativeType.other('int16', 'int16', '0');
+final shortType = NativeType.other('int16', 'int16', '0');
+final unsignedIntType = NativeType.other('int32', 'int32', '0');
+final intType = NativeType.other('int32', 'int32', '0');
+final unsignedLongType = NativeType.other('int64', 'int64', '0');
+final longType = NativeType.other('int64', 'int64', '0');
+final unsignedLongLongType = NativeType.other('int64', 'int64', '0');
+final longLongType = NativeType.other('int64', 'int64', '0');
 
-final floatType = ImportedType(ffiImport, 'Float', 'double', '0.0');
-final doubleType = ImportedType(ffiImport, 'Double', 'double', '0.0');
+final floatType = NativeType.other('int64', 'int64', '0.0');
+final doubleType = NativeType.other('int64', 'int64', '0.0');
 
-final sizeType = ImportedType(ffiImport, 'Size', 'int', '0');
-final wCharType = ImportedType(ffiImport, 'WChar', 'int', '0');
+final sizeType = NativeType.other('ssize_t', 'ssize_t', '0');
+final wCharType = NativeType.other('wchar', 'int', '0');
 
-final objCObjectType = ImportedType(objcPkgImport, 'ObjCObject', 'ObjCObject');
-final objCSelType = ImportedType(objcPkgImport, 'ObjCSelector', 'ObjCSelector');
-final objCBlockType = ImportedType(objcPkgImport, 'ObjCBlock', 'ObjCBlock');
+final objCObjectType = NativeType.other('ObjCObject', 'ObjCObject', null);
+final objCSelType = NativeType.other('ObjCSelector', 'ObjCSelector', null);
+final objCBlockType = NativeType.other('ObjCBlock', 'ObjCBlock', null);

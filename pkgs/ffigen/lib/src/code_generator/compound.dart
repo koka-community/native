@@ -93,14 +93,14 @@ abstract class Compound extends BindingType {
     final s = StringBuffer();
     final enclosingClassName = name;
     if (dartDoc != null) {
-      s.write(makeDartDoc(dartDoc!));
+      s.write(makeDoc(dartDoc!));
     }
 
     /// Adding [enclosingClassName] because dart doesn't allow class member
     /// to have the same name as the class.
     final localUniqueNamer = UniqueNamer({enclosingClassName});
 
-    /// Marking type names because dart doesn't allow class member to have the
+    /// Marking type names because koka doesn't allow class member to have the
     /// same name as a type name used internally.
     for (final m in members) {
       localUniqueNamer.markUsed(m.type.getFfiDartType(w));
@@ -108,32 +108,30 @@ abstract class Compound extends BindingType {
 
     /// Write @Packed(X) annotation if struct is packed.
     if (isStruct && pack != null) {
-      s.write('@${w.ffiLibraryPrefix}.Packed($pack)\n');
+      s.write('// @${w.ffiLibraryPrefix}.Packed($pack)\n');
     }
-    final dartClassName = isStruct ? 'Struct' : 'Union';
+    final kokaClassName = isStruct ? 'struct' : 'type';
     // Write class declaration.
-    s.write('final class $enclosingClassName extends ');
-    s.write('${w.ffiLibraryPrefix}.${isOpaque ? 'Opaque' : dartClassName}{\n');
-    const depth = '  ';
+    s.writeln('pub $kokaClassName ${enclosingClassName.toLowerCase()}');
+    const indent = '  ';
     for (final m in members) {
       m.name = localUniqueNamer.makeUnique(m.name);
       if (m.dartDoc != null) {
-        s.write('$depth/// ');
-        s.writeAll(m.dartDoc!.split('\n'), '\n$depth/// ');
-        s.write('\n');
+        s.write('$indent// ');
+        s.writeAll(m.dartDoc!.split('\n'), '\n$indent// ');
+        s.writeln();
       }
       if (m.type case final ConstantArray arrayType) {
         s.writeln(makeArrayAnnotation(w, arrayType));
-        s.write('${depth}external ${_getInlineArrayTypeString(m.type, w)} ');
-        s.write('${m.name};\n\n');
+        s.writeln('$indent${m.name}: ${_getInlineArrayTypeString(m.type, w)}');
       } else {
-        if (!m.type.sameFfiDartAndCType) {
-          s.write('$depth@${m.type.getCType(w)}()\n');
-        }
-        s.write('${depth}external ${m.type.getFfiDartType(w)} ${m.name};\n\n');
+        // if (!m.type.sameFfiDartAndCType) {
+        //   s.writeln('$indent@${m.type.getCType(w)}()');
+        // }
+        s.writeln('$indent${m.name}: ${m.type.getFfiDartType(w)}');
       }
     }
-    s.write('}\n\n');
+    s.writeln('');
 
     return BindingString(
         type: isStruct ? BindingStringType.struct : BindingStringType.union,

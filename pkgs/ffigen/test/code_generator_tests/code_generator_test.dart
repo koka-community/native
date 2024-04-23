@@ -11,9 +11,11 @@ import '../test_utils.dart';
 
 void main() {
   const licenseHeader = '''
-// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+// Copyright (c) 2024, the Koka-Community. 
+// 
+// All rights reserved. Use of this source code is governed by a
+// MIT-style license that can be found in the LICENSE file.
+// Ffigen is adapted from dart's ffigen which is under a BSD Style License in the LICENSE file.
 ''';
 
   group('code_generator: ', () {
@@ -430,29 +432,30 @@ void main() {
       );
       _matchLib(library, 'native_symbol');
     });
-  });
-  test('boolean_dartBool', () {
-    final library = Library(
-      name: 'Bindings',
-      header: licenseHeader,
-      bindings: [
-        Func(
-          name: 'test1',
-          returnType: BooleanType(),
-          parameters: [
-            Parameter(name: 'a', type: BooleanType()),
-            Parameter(name: 'b', type: PointerType(BooleanType())),
-          ],
-        ),
-        Struct(
-          name: 'Test2',
-          members: [
-            Member(name: 'a', type: BooleanType()),
-          ],
-        ),
-      ],
-    );
-    _matchLib(library, 'boolean_dartbool');
+    withAndWithoutNative('boolean', (nativeConfig) {
+      final library = Library(
+        name: 'Bindings',
+        header: licenseHeader,
+        bindings: [
+          Func(
+            ffiNativeConfig: nativeConfig,
+            name: 'test1',
+            returnType: BooleanType(),
+            parameters: [
+              Parameter(name: 'a', type: BooleanType()),
+              Parameter(name: 'b', type: PointerType(BooleanType())),
+            ],
+          ),
+          Struct(
+            name: 'Test2',
+            members: [
+              Member(name: 'a', type: BooleanType()),
+            ],
+          ),
+        ],
+      );
+      _matchLib(library, 'boolean_dartbool');
+    });
   });
   test('sort bindings', () {
     final library = Library(
@@ -577,10 +580,10 @@ void main() {
 
 /// Utility to match expected bindings to the generated bindings.
 void _matchLib(Library lib, String testName) {
-  matchLibraryWithExpected(lib, 'code_generator_test_${testName}_output.dart', [
+  matchLibraryWithExpected(lib, 'code_generator_test_${testName}_output.kk', [
     'test',
     'code_generator_tests',
     'expected_bindings',
-    '_expected_${testName}_bindings.dart'
+    '_expected_${testName}_bindings.kk'
   ]);
 }
