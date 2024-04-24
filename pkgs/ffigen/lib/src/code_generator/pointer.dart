@@ -29,7 +29,7 @@ class PointerType extends Type {
 
   @override
   String getCType(Writer w) =>
-      '${w.ffiLibraryPrefix}.owned-c<${child.getCType(w)}>';
+      '${w.ffiLibraryPrefix}.owned-c<${child.getFfiDartType(w)}>';
 
   // Both the C type and the FFI Dart type are 'Pointer<$cType>'.
   @override

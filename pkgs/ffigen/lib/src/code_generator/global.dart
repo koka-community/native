@@ -45,23 +45,24 @@ class Global extends LookUpBinding {
     if (dartDoc != null) {
       s.write(makeDoc(dartDoc!));
     }
-    final dartType = type.getFfiDartType(w);
+    final kokaType = type.getDartType(w);
+    final kokaFfiType = type.getFfiDartType(w);
     final cType = type.getCType(w);
 
     if (nativeConfig.enabled) {
-      if (type case final ConstantArray arr) {
-        s.writeln(makeArrayAnnotation(w, arr));
+      // if (type case final ConstantArray arr) {
+      //   s.writeln(makeArrayAnnotation(w, arr));
+      // }
+      // print("$type ${type.runtimeType}");
+      s.writeln('pub extern external/$globalVarName(): $kokaFfiType\n'
+          '  c inline "$name"\n');
+      if (constant) {
+        s.writeln(
+            'pub val wrapper/$globalVarName: $kokaType = ${type.convertFfiDartTypeToDartType(w, 'external/$globalVarName()', objCRetain: false)}\n');
+      } else {
+        s.writeln('pub fun wrapper/$globalVarName(): $kokaType\n'
+            '  ${type.convertFfiDartTypeToDartType(w, 'external/$globalVarName()', objCRetain: true)}\n');
       }
-
-      s.writeln(makeNativeAnnotation(
-        w,
-        nativeType: cType,
-        dartName: globalVarName,
-        nativeSymbolName: originalName,
-        isLeaf: false,
-      ));
-
-      s.writeln('val $globalVarName: $dartType;\n');
 
       if (exposeSymbolAddress) {
         w.symbolAddressWriter.addNativeSymbol(
@@ -79,12 +80,12 @@ class Global extends LookUpBinding {
           s.write(
               'val $globalVarName: ${w.ffiLibraryPrefix}.c-owned<$cType> = $pointerName\n\n');
         } else {
-          s.write('val $globalVarName: $dartType = $pointerName.ref\n\n');
+          s.write('val $globalVarName: $kokaType = $pointerName.ref\n\n');
         }
       } else {
-        s.write('val $globalVarName: $dartType = $pointerName.value\n\n');
+        s.write('val $globalVarName: $kokaType = $pointerName.value\n\n');
         if (!constant) {
-          s.write('fun set-$globalVarName(value: $dartType)\n'
+          s.write('fun set-$globalVarName(value: $kokaType)\n'
               '  $pointerName.value = value\n\n');
         }
       }

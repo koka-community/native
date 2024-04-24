@@ -108,7 +108,7 @@ class Func extends LookUpBinding {
     // final dartType = _exposedFunctionTypealias?.getFfiDartType(w) ??
     //     functionType.getFfiDartType(w, writeArgumentNames: false);
     final needsWrapper = !functionType.sameDartAndFfiDartType && !isInternal;
-    // print("Needs wrapper $needsWrapper");
+    print("Needs wrapper $needsWrapper");
     final funcVarName =
         'external/$enclosingFuncName'; // w.wrapperLevelUniqueNamer.makeUnique('_$name');
     final ffiReturnType = functionType.returnType.getCType(w);
@@ -157,6 +157,8 @@ class Func extends LookUpBinding {
   c "$originalName"''');
       s.writeln();
       if (needsWrapper) {
+        print(
+            "Wrapper ${nativeFuncName} ${dartReturnType} ${functionType.returnType.runtimeType} ${functionType.returnType}");
         s.write('''
 pub fun wrapper/$nativeFuncName($dartArgDeclString): $dartReturnType
   $funcImplCall
@@ -174,7 +176,6 @@ pub fun wrapper/$nativeFuncName($dartArgDeclString): $dartReturnType
       }
     } else {
       funcPointerName = w.wrapperLevelUniqueNamer.makeUnique('${name}ptr');
-      final isLeafString = isLeaf ? 'isLeaf:true' : '';
 
       final funcTypeName = w.wrapperLevelUniqueNamer.makeUnique('${name}fn');
       // Write enclosing function.

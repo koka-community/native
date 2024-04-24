@@ -112,93 +112,95 @@ abstract class Compound extends BindingType {
     }
     final kokaClassName = isStruct ? 'struct' : 'type';
     // Write class declaration.
-    final kokaName = name.toLowerCase();
-    s.writeln('pub $kokaClassName ${kokaName}');
-    const indent = '  ';
-    for (final m in members) {
-      m.name = localUniqueNamer.makeUnique(m.name);
-      if (m.dartDoc != null) {
-        s.write('$indent// ');
-        s.writeAll(m.dartDoc!.split('\n'), '\n$indent// ');
+    final kokaFfiName = getFfiDartType(w);
+    final kokaName = getDartType(w);
+    if (!isOpaque) {
+      s.writeln('pub $kokaClassName ${kokaName}');
+      const indent = '  ';
+      for (final m in members) {
+        m.name = localUniqueNamer.makeUnique(m.name);
+        if (m.dartDoc != null) {
+          s.write('$indent// ');
+          s.writeAll(m.dartDoc!.split('\n'), '\n$indent// ');
+          s.writeln();
+        }
+        if (m.type case final ConstantArray arrayType) {
+          s.writeln(makeArrayAnnotation(w, arrayType));
+          s.writeln(
+              '$indent${m.name}: ${_getInlineArrayTypeString(m.type, w)}');
+        } else {
+          // if (!m.type.sameFfiDartAndCType) {
+          //   s.writeln('$indent@${m.type.getCType(w)}()');
+          // }
+          s.writeln('$indent${m.name}: ${m.type.getFfiDartType(w)}');
+        }
+      }
+      s.writeln();
+    }
+    s.writeln('pub type $kokaFfiName');
+    s.writeln(
+        'alias ${name.toLowerCase()}c = ${w.ffiLibraryPrefix}.owned-c<$kokaFfiName>');
+    s.writeln(
+        'alias ${name.toLowerCase()}cb = ${w.ffiLibraryPrefix}.borrowed-c<${kokaFfiName}>');
+    s.writeln(
+        'alias ${name.toLowerCase()}ca = ${w.ffiLibraryPrefix}.owned-c<${w.ffiLibraryPrefix}.c-array<${kokaFfiName}>>\n');
+    if (!isOpaque) {
+      s.writeln(
+          'fun size-of(c: ${w.ffiLibraryPrefix}.c-null<$kokaFfiName>): int32\n'
+          '  c inline "sizeof($originalName)"');
+
+      s.writeln();
+
+      s.writeln('pub fun ${kokaName}c(): ${kokaName}c\n'
+          '  malloc()');
+      s.writeln();
+      s.writeln('pub fun ${kokaName}c-calloc(): ${kokaName}c\n'
+          '  malloc-c()');
+      s.writeln();
+
+      s.writeln('pub fun ${kokaName}c-array(n: int): ${kokaName}ca\n'
+          '  malloc(n.int32)');
+      s.writeln();
+
+      s.writeln('pub fun ${kokaName}c-array-calloc(n: int): ${kokaName}ca\n'
+          '  malloc-c(n.int32)');
+      s.writeln();
+
+      for (final m in members) {
+        s.writeln(
+            'inline extern ${kokaName}-ptr/${m.name}(s: intptr_t): ${m.type.getFfiDartType(w)}\n'
+            '  c inline "(($originalName*)#1)->${m.originalName}"');
+        s.writeln();
+
+        s.writeln(
+            'pub inline fun ${kokaName}c/${m.name}(^s: ${kokaName}c): ${m.type.getFfiDartType(w)}\n'
+            '  s.with-ptr(${kokaName}-ptr/${m.name})');
+        s.writeln();
+
+        s.writeln(
+            'pub inline fun ${kokaName}cb/${m.name}(^s: ${kokaName}cb): ${m.type.getFfiDartType(w)}\n'
+            '  s.with-ptr(${kokaName}-ptr/${m.name})');
+        s.writeln();
+
+        s.writeln(
+            'inline extern ${kokaName}-ptr/set-${m.name}(s: intptr_t, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
+            '  c inline "(($originalName*)#1)->${m.originalName} = #2"');
+        s.writeln();
+
+        s.writeln(
+            'pub inline fun ${kokaName}c/set-${m.name}(^s: ${kokaName}c, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
+            '  s.with-ptr(fn(p) p.${kokaName}-ptr/set-${m.name}(${m.name}))');
+        s.writeln();
+
+        s.writeln(
+            'pub inline fun ${kokaName}cb/set-${m.name}(^s: ${kokaName}cb, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
+            '  s.with-ptr(fn(p) p.${kokaName}-ptr/set-${m.name}(${m.name}))');
         s.writeln();
       }
-      if (m.type case final ConstantArray arrayType) {
-        s.writeln(makeArrayAnnotation(w, arrayType));
-        s.writeln('$indent${m.name}: ${_getInlineArrayTypeString(m.type, w)}');
-      } else {
-        // if (!m.type.sameFfiDartAndCType) {
-        //   s.writeln('$indent@${m.type.getCType(w)}()');
-        // }
-        s.writeln('$indent${m.name}: ${m.type.getFfiDartType(w)}');
-      }
+
+      s.writeln('pub fun ${kokaName}/to-koka(s: ${kokaName}c): $kokaName\n'
+          '  ${kokaName.capitalize}(${members.map((m) => 's.${m.name}').join(', ')})');
     }
-    s.writeln();
-    final kokaCAbstractTypeName = '$kokaName-c';
-    s.writeln('pub type $kokaCAbstractTypeName');
-    s.writeln(
-        'alias ${kokaName}c = ${w.ffiLibraryPrefix}.owned-c<$kokaCAbstractTypeName>');
-    s.writeln(
-        'alias ${kokaName}cb = ${w.ffiLibraryPrefix}.borrowed-c<${kokaCAbstractTypeName}>');
-    s.writeln(
-        'alias ${kokaName}ca = ${w.ffiLibraryPrefix}.owned-c<${w.ffiLibraryPrefix}.c-array<${kokaCAbstractTypeName}>>');
-
-    s.writeln();
-    s.writeln(
-        'fun size-of(c: ${w.ffiLibraryPrefix}.c-null<$kokaCAbstractTypeName>): int32\n'
-        '  c inline "sizeof($originalName)"');
-
-    s.writeln();
-
-    s.writeln('pub fun ${kokaName}c(): ${kokaName}c\n'
-        '  malloc()');
-    s.writeln();
-    s.writeln('pub fun ${kokaName}c-calloc(): ${kokaName}c\n'
-        '  malloc-c()');
-    s.writeln();
-
-    s.writeln('pub fun ${kokaName}c-array(n: int): ${kokaName}ca\n'
-        '  malloc(n.int32)');
-    s.writeln();
-
-    s.writeln('pub fun ${kokaName}c-array-calloc(n: int): ${kokaName}ca\n'
-        '  malloc-c(n.int32)');
-    s.writeln();
-
-    for (final m in members) {
-      s.writeln(
-          'inline extern ${kokaName}-ptr/${m.name}(s: intptr_t): ${m.type.getFfiDartType(w)}\n'
-          '  c inline "(($originalName*)#1)->${m.originalName}"');
-      s.writeln();
-
-      s.writeln(
-          'pub inline fun ${kokaName}c/${m.name}(^s: ${kokaName}c): ${m.type.getFfiDartType(w)}\n'
-          '  s.with-ptr(${kokaName}-ptr/${m.name})');
-      s.writeln();
-
-      s.writeln(
-          'pub inline fun ${kokaName}cb/${m.name}(^s: ${kokaName}cb): ${m.type.getFfiDartType(w)}\n'
-          '  s.with-ptr(${kokaName}-ptr/${m.name})');
-      s.writeln();
-
-      s.writeln(
-          'inline extern ${kokaName}-ptr/set-${m.name}(s: intptr_t, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
-          '  c inline "(($originalName*)#1)->${m.originalName} = #2"');
-      s.writeln();
-
-      s.writeln(
-          'pub inline fun ${kokaName}c/set-${m.name}(^s: ${kokaName}c, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
-          '  s.with-ptr(fn(p) p.${kokaName}-ptr/set-${m.name}(${m.name}))');
-      s.writeln();
-
-      s.writeln(
-          'pub inline fun ${kokaName}cb/set-${m.name}(^s: ${kokaName}cb, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
-          '  s.with-ptr(fn(p) p.${kokaName}-ptr/set-${m.name}(${m.name}))');
-      s.writeln();
-    }
-
-    s.writeln('pub fun ${kokaName}/to-koka(s: ${kokaName}c): $kokaName\n'
-        '  ${kokaName.capitalize}(${members.map((m) => 's.${m.name}').join(', ')})');
-
     return BindingString(
         type: isStruct ? BindingStringType.struct : BindingStringType.union,
         string: s.toString());
@@ -221,7 +223,17 @@ abstract class Compound extends BindingType {
   String getCType(Writer w) => name;
 
   @override
-  bool get sameFfiDartAndCType => true;
+  String getFfiDartType(Writer w) => name.toLowerCase() + "-c";
+
+  @override
+  String getDartType(Writer w) =>
+      isOpaque ? getFfiDartType(w) : name.toLowerCase();
+
+  @override
+  bool get sameFfiDartAndCType => false;
+
+  @override
+  bool get sameDartAndCType => false;
 }
 
 class Member {

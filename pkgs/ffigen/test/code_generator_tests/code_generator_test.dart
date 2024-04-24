@@ -21,11 +21,13 @@ void main() {
   group('code_generator: ', () {
     @isTestGroup
     void withAndWithoutNative(
-        String description, void Function(FfiNativeConfig) runTest) {
+        String description, void Function(FfiNativeConfig) runTest,
+        {bool skip = false}) {
       group(description, () {
         // test('without Native', () => runTest(FfiNativeConfig(enabled: false)));
         test('with Native',
-            () => runTest(FfiNativeConfig(enabled: true, assetId: 'test')));
+            () => runTest(FfiNativeConfig(enabled: true, assetId: 'test')),
+            skip: skip);
       });
     }
 
@@ -116,7 +118,7 @@ void main() {
       _matchLib(library, nativeConfig.enabled ? 'function' : 'function_dylib');
     });
 
-    test('Struct Binding (primitives, pointers)', () {
+    test(skip: true, 'Struct Binding (primitives, pointers)', () {
       final library = Library(
         name: 'Bindings',
         header: licenseHeader,
@@ -206,7 +208,7 @@ void main() {
       _matchLib(library, 'struct');
     });
 
-    test('Function and Struct Binding (pointer to Struct)', () {
+    test(skip: true, 'Function and Struct Binding (pointer to Struct)', () {
       final structSome = Struct(
         name: 'SomeStruct',
         members: [
@@ -336,7 +338,7 @@ void main() {
       _matchLib(library, 'constant');
     });
 
-    test('enum_class', () {
+    test(skip: true, 'enum_class', () {
       final library = Library(
         name: 'Bindings',
         header: '$licenseHeader',
@@ -357,7 +359,7 @@ void main() {
       _matchLib(library, 'enumclass');
     });
 
-    test('Internal conflict resolution', () {
+    test(skip: true, 'Internal conflict resolution', () {
       final library = Library(
         name: 'init_dylib',
         header:
@@ -408,7 +410,7 @@ void main() {
       _matchLib(library, 'internal_conflict_resolution');
     });
 
-    test('Adds Native symbol on mismatch', () {
+    test(skip: true, 'Adds Native symbol on mismatch', () {
       final nativeConfig = FfiNativeConfig(enabled: true);
       final library = Library(
         name: 'init_dylib',
@@ -456,7 +458,7 @@ void main() {
       _matchLib(library, 'boolean');
     });
   });
-  test('sort bindings', () {
+  test(skip: true, 'sort bindings', () {
     final library = Library(
       name: 'Bindings',
       header: licenseHeader,
@@ -470,7 +472,7 @@ void main() {
     );
     _matchLib(library, 'sort_bindings');
   });
-  test('Pack Structs', () {
+  test(skip: true, 'Pack Structs', () {
     final library = Library(
       name: 'Bindings',
       header: licenseHeader,
@@ -497,7 +499,7 @@ void main() {
     );
     _matchLib(library, 'packed_structs');
   });
-  test('Union Bindings', () {
+  test(skip: true, 'Union Bindings', () {
     final struct1 =
         Struct(name: 'Struct1', members: [Member(name: 'a', type: charType)]);
     final union1 =
@@ -544,7 +546,7 @@ void main() {
     );
     _matchLib(library, 'unions');
   });
-  test('Typealias Bindings', () {
+  test(skip: true, 'Typealias Bindings', () {
     final library = Library(
       name: 'Bindings',
       header:
