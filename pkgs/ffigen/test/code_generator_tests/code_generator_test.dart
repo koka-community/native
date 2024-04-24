@@ -113,8 +113,7 @@ void main() {
         ],
       );
 
-      _matchLib(
-          library, nativeConfig.enabled ? 'function_ffiNative' : 'function');
+      _matchLib(library, nativeConfig.enabled ? 'function' : 'function_dylib');
     });
 
     test('Struct Binding (primitives, pointers)', () {
@@ -320,7 +319,7 @@ void main() {
     test('constant', () {
       final library = Library(
         name: 'Bindings',
-        header: '$licenseHeader\n// ignore_for_file: unused_import\n',
+        header: '$licenseHeader',
         bindings: [
           Constant(
             name: 'test1',
@@ -329,7 +328,7 @@ void main() {
           ),
           Constant(
             name: 'test2',
-            rawType: 'double',
+            rawType: 'float64',
             rawValue: '20.0',
           ),
         ],
@@ -340,7 +339,7 @@ void main() {
     test('enum_class', () {
       final library = Library(
         name: 'Bindings',
-        header: '$licenseHeader\n// ignore_for_file: unused_import\n',
+        header: '$licenseHeader',
         bindings: [
           EnumClass(
             name: 'Constants',
@@ -454,7 +453,7 @@ void main() {
           ),
         ],
       );
-      _matchLib(library, 'boolean_dartbool');
+      _matchLib(library, 'boolean');
     });
   });
   test('sort bindings', () {

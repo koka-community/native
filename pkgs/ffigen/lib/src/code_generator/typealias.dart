@@ -36,7 +36,7 @@ class Typealias extends BindingType {
     final funcType = _getFunctionTypeFromPointer(type);
     if (funcType != null) {
       type = PointerType(NativeFunc(Typealias._(
-        name: '${name}Function',
+        name: '${name}fn',
         type: funcType,
         genFfiDartType: genFfiDartType,
         isInternal: isInternal,
@@ -73,13 +73,13 @@ class Typealias extends BindingType {
     required this.type,
     bool genFfiDartType = false,
     super.isInternal,
-  })  : _ffiDartAliasName = genFfiDartType ? 'Dart$name' : null,
+  })  : _ffiDartAliasName = genFfiDartType ? 'koka-$name' : null,
         _dartAliasName =
             (!genFfiDartType && type is! Typealias && !type.sameDartAndCType)
-                ? 'Dart$name'
+                ? 'koka-$name'
                 : null,
         super(
-          name: genFfiDartType ? 'Native$name' : name,
+          name: genFfiDartType ? 'native-$name' : name,
         );
 
   @override
@@ -110,12 +110,12 @@ class Typealias extends BindingType {
     if (dartDoc != null) {
       sb.write(makeDoc(dartDoc!));
     }
-    sb.write('typedef $name = ${type.getCType(w)};\n');
+    sb.write('alias $name = ${type.getCType(w)}\n');
     if (_ffiDartAliasName != null) {
-      sb.write('typedef $_ffiDartAliasName = ${type.getFfiDartType(w)};\n');
+      sb.write('alias $_ffiDartAliasName = ${type.getFfiDartType(w)}\n');
     }
     if (_dartAliasName != null) {
-      sb.write('typedef $_dartAliasName = ${type.getDartType(w)};\n');
+      sb.write('alias $_dartAliasName = ${type.getDartType(w)}\n');
     }
     return BindingString(
         type: BindingStringType.typeDef, string: sb.toString());

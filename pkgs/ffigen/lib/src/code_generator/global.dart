@@ -53,51 +53,46 @@ class Global extends LookUpBinding {
         s.writeln(makeArrayAnnotation(w, arr));
       }
 
-      s
-        ..writeln(makeNativeAnnotation(
-          w,
-          nativeType: cType,
-          dartName: globalVarName,
-          nativeSymbolName: originalName,
-          isLeaf: false,
-        ))
-        ..write('external ');
-      if (constant) {
-        s.write('final ');
-      }
+      s.writeln(makeNativeAnnotation(
+        w,
+        nativeType: cType,
+        dartName: globalVarName,
+        nativeSymbolName: originalName,
+        isLeaf: false,
+      ));
 
-      s.writeln('$dartType $globalVarName;\n');
+      s.writeln('val $globalVarName: $dartType;\n');
 
       if (exposeSymbolAddress) {
         w.symbolAddressWriter.addNativeSymbol(
-            type: '${w.ffiLibraryPrefix}.Pointer<$cType>', name: name);
+            type: '${w.ffiLibraryPrefix}.c-owned<$cType>', name: name);
       }
     } else {
       final pointerName =
           w.wrapperLevelUniqueNamer.makeUnique('_$globalVarName');
 
       s.write(
-          "late final ${w.ffiLibraryPrefix}.Pointer<$cType> $pointerName = ${w.lookupFuncIdentifier}<$cType>('$originalName');\n\n");
+          "val $pointerName: ${w.ffiLibraryPrefix}.c-owned<$cType> = ${w.lookupFuncIdentifier}<$cType>('$originalName')\n\n");
       final baseTypealiasType = type.typealiasType;
       if (baseTypealiasType is Compound) {
         if (baseTypealiasType.isOpaque) {
           s.write(
-              '${w.ffiLibraryPrefix}.Pointer<$cType> get $globalVarName => $pointerName;\n\n');
+              'val $globalVarName: ${w.ffiLibraryPrefix}.c-owned<$cType> = $pointerName\n\n');
         } else {
-          s.write('$dartType get $globalVarName => $pointerName.ref;\n\n');
+          s.write('val $globalVarName: $dartType = $pointerName.ref\n\n');
         }
       } else {
-        s.write('$dartType get $globalVarName => $pointerName.value;\n\n');
+        s.write('val $globalVarName: $dartType = $pointerName.value\n\n');
         if (!constant) {
-          s.write(
-              'set $globalVarName($dartType value) => $pointerName.value = value;\n\n');
+          s.write('fun set-$globalVarName(value: $dartType)\n'
+              '  $pointerName.value = value\n\n');
         }
       }
 
       if (exposeSymbolAddress) {
         // Add to SymbolAddress in writer.
         w.symbolAddressWriter.addSymbol(
-          type: '${w.ffiLibraryPrefix}.Pointer<$cType>',
+          type: '${w.ffiLibraryPrefix}.c-owned<$cType>',
           name: name,
           ptrName: pointerName,
         );

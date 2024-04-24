@@ -27,15 +27,15 @@ enum SupportedNativeType {
 class NativeType extends Type {
   static const _primitives = <SupportedNativeType, NativeType>{
     SupportedNativeType.Void: NativeType._('()', '()', '()'),
-    SupportedNativeType.Char: NativeType._('int8', 'int8', '0'),
-    SupportedNativeType.Int8: NativeType._('int8', 'int8', '0'),
-    SupportedNativeType.Int16: NativeType._('int16', 'int16', '0'),
-    SupportedNativeType.Int32: NativeType._('int32', 'int32', '0'),
-    SupportedNativeType.Int64: NativeType._('int64', 'int64', '0'),
-    SupportedNativeType.Uint8: NativeType._('int8', 'int8', '0'),
-    SupportedNativeType.Uint16: NativeType._('int16', 'int16', '0'),
-    SupportedNativeType.Uint32: NativeType._('int32', 'int32', '0'),
-    SupportedNativeType.Uint64: NativeType._('int64', 'int64', '0'),
+    SupportedNativeType.Char: NativeType._('int8', 'int', '0'),
+    SupportedNativeType.Int8: NativeType._('int8', 'int', '0'),
+    SupportedNativeType.Int16: NativeType._('int16', 'int', '0'),
+    SupportedNativeType.Int32: NativeType._('int32', 'int', '0'),
+    SupportedNativeType.Int64: NativeType._('int64', 'int', '0'),
+    SupportedNativeType.Uint8: NativeType._('int8', 'int', '0'),
+    SupportedNativeType.Uint16: NativeType._('int16', 'int', '0'),
+    SupportedNativeType.Uint32: NativeType._('int32', 'int', '0'),
+    SupportedNativeType.Uint64: NativeType._('int64', 'int', '0'),
     SupportedNativeType.Float: NativeType._('float32', 'float32', '0.0'),
     SupportedNativeType.Double: NativeType._('float64', 'float64', '0.0'),
     SupportedNativeType.IntPtr: NativeType._('intptr_t', 'intptr_t', '0'),
@@ -52,13 +52,33 @@ class NativeType extends Type {
   factory NativeType(SupportedNativeType type) => _primitives[type]!;
 
   @override
-  String getCType(Writer w) => '$_cType';
+  String getCType(Writer w) => _cType;
 
   @override
   String getFfiDartType(Writer w) => _dartType;
 
   @override
   bool get sameFfiDartAndCType => _cType == _dartType;
+
+  @override
+  bool get sameDartAndFfiDartType => _dartType == _cType;
+
+  @override
+  String convertFfiDartTypeToDartType(
+    Writer w,
+    String value, {
+    required bool objCRetain,
+    String? objCEnclosingClass,
+  }) =>
+      '$value.$_dartType';
+
+  @override
+  String convertDartTypeToFfiDartType(
+    Writer w,
+    String value, {
+    required bool objCRetain,
+  }) =>
+      '$value.$_cType';
 
   @override
   String toString() => _cType;

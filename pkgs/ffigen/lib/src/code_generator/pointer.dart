@@ -65,7 +65,7 @@ class ConstantArray extends PointerType {
   @override
   String getCType(Writer w) {
     if (useArrayType) {
-      return '${w.ffiLibraryPrefix}.Array<${child.getCType(w)}>';
+      return '${w.ffiLibraryPrefix}.c-array<${child.getCType(w)}>';
     }
 
     return super.getCType(w);
@@ -84,6 +84,11 @@ class IncompleteArray extends PointerType {
 
   @override
   String cacheKey() => '${child.cacheKey()}[]';
+
+  @override
+  String getCType(Writer w) {
+    return '${w.ffiLibraryPrefix}.c-array<${child.getCType(w)}>';
+  }
 }
 
 /// A pointer to an NSObject.

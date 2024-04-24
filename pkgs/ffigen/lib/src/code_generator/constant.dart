@@ -42,10 +42,10 @@ class Constant extends NoLookUpBinding {
     final constantName = name;
 
     if (dartDoc != null) {
-      s.write(makeDoc(dartDoc!));
+      s.writeln(makeDoc(dartDoc!));
     }
 
-    s.write('\nconst $rawType $constantName = $rawValue;\n\n');
+    s.writeln('pub val $constantName: $rawType = $rawValue\n');
 
     return BindingString(
         type: BindingStringType.constant, string: s.toString());

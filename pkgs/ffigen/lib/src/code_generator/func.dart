@@ -108,11 +108,12 @@ class Func extends LookUpBinding {
     // final dartType = _exposedFunctionTypealias?.getFfiDartType(w) ??
     //     functionType.getFfiDartType(w, writeArgumentNames: false);
     final needsWrapper = !functionType.sameDartAndFfiDartType && !isInternal;
-
-    final funcVarName = w.wrapperLevelUniqueNamer.makeUnique('_$name');
-    final ffiReturnType = functionType.returnType.getFfiDartType(w);
+    // print("Needs wrapper $needsWrapper");
+    final funcVarName =
+        'external/$enclosingFuncName'; // w.wrapperLevelUniqueNamer.makeUnique('_$name');
+    final ffiReturnType = functionType.returnType.getCType(w);
     final ffiArgDeclString = functionType.dartTypeParameters
-        .map((p) => '${p.name}: ${p.type.getFfiDartType(w)}')
+        .map((p) => '${p.name}: ${p.type.getCType(w)}')
         .join(', ');
 
     late final String dartReturnType;
@@ -142,7 +143,7 @@ class Func extends LookUpBinding {
     }
 
     if (ffiNativeConfig.enabled) {
-      final nativeFuncName = needsWrapper ? funcVarName : enclosingFuncName;
+      final nativeFuncName = enclosingFuncName;
 //       s.write('''
 // ${makeNativeAnnotation(
 //         w,
@@ -152,12 +153,13 @@ class Func extends LookUpBinding {
 //         isLeaf: isLeaf,
 //       )}
       s.writeln(
-          '''extern external/$nativeFuncName($ffiArgDeclString): $ffiReturnType
+          '''pub extern external/$nativeFuncName($ffiArgDeclString): $ffiReturnType
   c "$originalName"''');
       s.writeln();
       if (needsWrapper) {
         s.write('''
-$dartReturnType $enclosingFuncName($dartArgDeclString) => $funcImplCall;
+pub fun wrapper/$nativeFuncName($dartArgDeclString): $dartReturnType
+  $funcImplCall
 
 ''');
       }

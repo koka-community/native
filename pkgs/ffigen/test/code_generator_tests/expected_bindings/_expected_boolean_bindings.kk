@@ -15,7 +15,7 @@ import std/cextern as ffi
 extern import
   c file "test"
 
-extern external/test1(a: bool, b: ffi.owned-c<bool>): bool
+pub extern external/test1(a: bool, b: ffi.owned-c<bool>): bool
   c "test1"
 
 pub struct test2
