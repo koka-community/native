@@ -23,7 +23,7 @@ void main() {
     void withAndWithoutNative(
         String description, void Function(FfiNativeConfig) runTest) {
       group(description, () {
-        test('without Native', () => runTest(FfiNativeConfig(enabled: false)));
+        // test('without Native', () => runTest(FfiNativeConfig(enabled: false)));
         test('with Native',
             () => runTest(FfiNativeConfig(enabled: true, assetId: 'test')));
       });

@@ -94,6 +94,12 @@ String makeNativeAnnotation(
   return '@${w.ffiLibraryPrefix}.Native<$nativeType>($combinedArgs)';
 }
 
+extension Naming on String {
+  String get capitalize {
+    return this[0].toUpperCase() + substring(1);
+  }
+}
+
 String makeArrayAnnotation(Writer w, ConstantArray arrayType) {
   final dimensions = <int>[];
   Type type = arrayType;

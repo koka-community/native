@@ -112,7 +112,8 @@ abstract class Compound extends BindingType {
     }
     final kokaClassName = isStruct ? 'struct' : 'type';
     // Write class declaration.
-    s.writeln('pub $kokaClassName ${enclosingClassName.toLowerCase()}');
+    final kokaName = name.toLowerCase();
+    s.writeln('pub $kokaClassName ${kokaName}');
     const indent = '  ';
     for (final m in members) {
       m.name = localUniqueNamer.makeUnique(m.name);
@@ -131,7 +132,72 @@ abstract class Compound extends BindingType {
         s.writeln('$indent${m.name}: ${m.type.getFfiDartType(w)}');
       }
     }
-    s.writeln('');
+    s.writeln();
+    final kokaCAbstractTypeName = '$kokaName-c';
+    s.writeln('pub type $kokaCAbstractTypeName');
+    s.writeln(
+        'alias ${kokaName}c = ${w.ffiLibraryPrefix}.owned-c<$kokaCAbstractTypeName>');
+    s.writeln(
+        'alias ${kokaName}cb = ${w.ffiLibraryPrefix}.borrowed-c<${kokaCAbstractTypeName}>');
+    s.writeln(
+        'alias ${kokaName}ca = ${w.ffiLibraryPrefix}.owned-c<${w.ffiLibraryPrefix}.c-array<${kokaCAbstractTypeName}>>');
+
+    s.writeln();
+    s.writeln(
+        'fun size-of(c: ${w.ffiLibraryPrefix}.c-null<$kokaCAbstractTypeName>): int32\n'
+        '  c inline "sizeof($originalName)"');
+
+    s.writeln();
+
+    s.writeln('pub fun ${kokaName}c(): ${kokaName}c\n'
+        '  malloc()');
+    s.writeln();
+    s.writeln('pub fun ${kokaName}c-calloc(): ${kokaName}c\n'
+        '  malloc-c()');
+    s.writeln();
+
+    s.writeln('pub fun ${kokaName}c-array(n: int): ${kokaName}ca\n'
+        '  malloc(n.int32)');
+    s.writeln();
+
+    s.writeln('pub fun ${kokaName}c-array-calloc(n: int): ${kokaName}ca\n'
+        '  malloc-c(n.int32)');
+    s.writeln();
+
+    for (final m in members) {
+      s.writeln(
+          'inline extern ${kokaName}-ptr/${m.name}(s: intptr_t): ${m.type.getFfiDartType(w)}\n'
+          '  c inline "(($originalName*)#1)->${m.originalName}"');
+      s.writeln();
+
+      s.writeln(
+          'pub inline fun ${kokaName}c/${m.name}(^s: ${kokaName}c): ${m.type.getFfiDartType(w)}\n'
+          '  s.with-ptr(${kokaName}-ptr/${m.name})');
+      s.writeln();
+
+      s.writeln(
+          'pub inline fun ${kokaName}cb/${m.name}(^s: ${kokaName}cb): ${m.type.getFfiDartType(w)}\n'
+          '  s.with-ptr(${kokaName}-ptr/${m.name})');
+      s.writeln();
+
+      s.writeln(
+          'inline extern ${kokaName}-ptr/set-${m.name}(s: intptr_t, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
+          '  c inline "(($originalName*)#1)->${m.originalName} = #2"');
+      s.writeln();
+
+      s.writeln(
+          'pub inline fun ${kokaName}c/set-${m.name}(^s: ${kokaName}c, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
+          '  s.with-ptr(fn(p) p.${kokaName}-ptr/set-${m.name}(${m.name}))');
+      s.writeln();
+
+      s.writeln(
+          'pub inline fun ${kokaName}cb/set-${m.name}(^s: ${kokaName}cb, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
+          '  s.with-ptr(fn(p) p.${kokaName}-ptr/set-${m.name}(${m.name}))');
+      s.writeln();
+    }
+
+    s.writeln('pub fun ${kokaName}/to-koka(s: ${kokaName}c): $kokaName\n'
+        '  ${kokaName.capitalize}(${members.map((m) => 's.${m.name}').join(', ')})');
 
     return BindingString(
         type: isStruct ? BindingStringType.struct : BindingStringType.union,

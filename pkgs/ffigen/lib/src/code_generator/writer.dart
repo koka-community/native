@@ -253,9 +253,9 @@ class Writer {
     result.writeln("module ${className.toLowerCase()}");
     result.writeln();
     if (ffiNativeBindings.isNotEmpty && nativeAssetId != null) {
-      result.writeln("extern import");
-      result.writeln("  c file \"$nativeAssetId\"");
-      result.writeln();
+      s.writeln("extern import");
+      s.writeln("  c file \"$nativeAssetId\"");
+      s.writeln();
       // result
       //   ..writeln("@$ffiLibraryPrefix.DefaultAsset('$nativeAssetId')")
       //   ..writeln('library;\n');
@@ -303,8 +303,8 @@ class Writer {
 
     // Write neccesary imports.
     for (final lib in _usedImports) {
-      // final path = lib.importPath(generateForPackageObjectiveC);
-      // result.write("import '$path' as ${lib.prefix};\n");
+      final path = lib.importPath(generateForPackageObjectiveC);
+      result.writeln("import $path as ${lib.prefix}\n");
     }
     result.write(s);
 
