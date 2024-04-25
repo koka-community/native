@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:logging/logging.dart';
+
 import '../config_provider/config_types.dart';
 import 'binding.dart';
 import 'binding_string.dart';
@@ -10,6 +12,8 @@ import 'pointer.dart';
 import 'type.dart';
 import 'utils.dart';
 import 'writer.dart';
+
+final _logger = Logger('ffigen.code_generator.global');
 
 /// A binding to a global variable
 ///
@@ -48,6 +52,11 @@ class Global extends LookUpBinding {
     final kokaType = type.getDartType(w);
     final kokaFfiType = type.getFfiDartType(w);
     final cType = type.getCType(w);
+    if (type is Compound) {
+      _logger.warning(
+          'Global has compound value type which is not supported yet.');
+      return BindingString(type: BindingStringType.constant, string: "");
+    }
 
     if (nativeConfig.enabled) {
       // if (type case final ConstantArray arr) {

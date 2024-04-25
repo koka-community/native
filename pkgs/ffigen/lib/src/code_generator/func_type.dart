@@ -32,9 +32,9 @@ class FunctionType extends Type {
       final varArgPackBuf = StringBuffer();
       varArgPackBuf.write("$varArgWrapper<(");
       varArgPackBuf.write((varArgParameters).map<String>((p) {
-        return '${typeToString(p.type)} ${writeArgumentNames ? p.name : ""}';
+        return '${writeArgumentNames ? p.name.isEmpty ? '' : '${p.name} : ' : ""}${typeToString(p.type)}';
       }).join(', '));
-      varArgPackBuf.write(",)>");
+      varArgPackBuf.write(")>");
       varArgPack = varArgPackBuf.toString();
     }
 
@@ -45,7 +45,7 @@ class FunctionType extends Type {
     sb.write('((');
     sb.write([
       ...params.map<String>((p) {
-        return '${typeToString(p.type)} ${writeArgumentNames ? p.name : ""}';
+        return '${writeArgumentNames ? p.name.isEmpty ? '' : '${p.name} : ' : ""}${typeToString(p.type)}';
       }),
       if (varArgPack != null) varArgPack,
     ].join(', '));

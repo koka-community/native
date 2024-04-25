@@ -70,4 +70,5 @@ const keywords = {
   'with',
   'yield',
   'type',
+  'ctx',
 };

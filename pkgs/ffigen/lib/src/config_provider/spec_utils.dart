@@ -291,8 +291,10 @@ Headers headersExtractor(
     }
     if (key == strings.includeDirectives) {
       for (final h in yamlConfig[key]!) {
+        print(h);
         final headerGlob = h;
         final fixedGlob = _normalizePath(headerGlob, configFilename);
+        print(fixedGlob);
         includeGlobs.add(quiver.Glob(fixedGlob));
       }
     }

@@ -288,16 +288,10 @@ String _getWritableChar(int char, {bool utf8 = true}) {
   if (char >= 0 && char < 32 || char == 127) {
     /// Handle these - `\b \t \n \v \f \r` as special cases.
     switch (char) {
-      case 8: // \b
-        return r'\b';
       case 9: // \t
         return r'\t';
       case 10: // \n
         return r'\n';
-      case 11: // \v
-        return r'\v';
-      case 12: // \f
-        return r'\f';
       case 13: // \r
         return r'\r';
       default:

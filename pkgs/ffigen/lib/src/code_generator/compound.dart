@@ -110,15 +110,23 @@ abstract class Compound extends BindingType {
     if (isStruct && pack != null) {
       s.write('// Packed($pack)\n');
     }
-    final kokaClassName = isStruct ? 'struct' : 'type';
     // Write class declaration.
     final kokaFfiName = getFfiDartType(w);
     final kokaName = getDartType(w);
-    if (!isOpaque) {
-      s.writeln('pub $kokaClassName ${kokaName}');
+    final kokaOwnedName = getDartTypeOwned(w);
+    final kokaBorrowedName = getDartTypeBorrowed(w);
+    final kokaOwnedArrayName = getDartTypeOwnedArray(w);
+    if (!sameDartAndFfiDartType) {
+      if (members.length <= 3) {
+        s.writeln('pub value struct $kokaName$typeParam');
+      } else {
+        s.writeln('pub struct $kokaName$typeParam');
+      }
       const indent = '  ';
       for (final m in members) {
-        m.name = localUniqueNamer.makeUnique(m.name);
+        m.name = localUniqueNamer
+            .makeUnique(m.name.toLowerCase().replaceAll('_', '-'));
+
         if (m.dartDoc != null) {
           s.write('$indent// ');
           s.writeAll(m.dartDoc!.split('\n'), '\n$indent// ');
@@ -127,7 +135,7 @@ abstract class Compound extends BindingType {
         if (m.type case final ConstantArray arrayType) {
           s.writeln(makeArrayAnnotation(w, arrayType));
           s.writeln(
-              '$indent${m.name}: ${_getInlineArrayTypeString(m.type, w)}');
+              '$indent${m.name}: borrowed-c<s,${_getInlineArrayTypeString(m.type, w)}>');
         } else {
           // if (!m.type.sameFfiDartAndCType) {
           //   s.writeln('$indent@${m.type.getCType(w)}()');
@@ -138,66 +146,70 @@ abstract class Compound extends BindingType {
       s.writeln();
     }
     s.writeln('pub type $kokaFfiName');
-    s.writeln('alias ${name.toLowerCase()}c = owned-c<$kokaFfiName>');
-    s.writeln(
-        'alias ${name.toLowerCase()}cb<s> = borrowed-c<s,${kokaFfiName}>');
-    s.writeln(
-        'alias ${name.toLowerCase()}ca = owned-c<c-array<${kokaFfiName}>>\n');
+    s.writeln('alias $kokaOwnedName = owned-c<$kokaFfiName>');
+    s.writeln('alias $kokaBorrowedName = borrowed-c<s,$kokaFfiName>');
+    s.writeln('alias $kokaOwnedArrayName = owned-c<c-array<$kokaFfiName>>\n');
     if (!isOpaque) {
-      s.writeln('extern ${kokaName}/size-of(c: c-null<$kokaFfiName>): int32\n'
+      s.writeln('extern $kokaName/size-of(c: c-null<$kokaFfiName>): int32\n'
           '  c inline "sizeof($originalName)"');
 
       s.writeln();
 
-      s.writeln('pub fun ${kokaName}c(): ${kokaName}c\n'
-          '  malloc()');
+      s.writeln('pub fun ${kokaName}c(): $kokaOwnedName\n'
+          '  malloc(?size-of=$kokaName/size-of)');
       s.writeln();
-      s.writeln('pub fun ${kokaName}c-calloc(): ${kokaName}c\n'
-          '  malloc-c()');
-      s.writeln();
-
-      s.writeln('pub fun ${kokaName}c-array(n: int): ${kokaName}ca\n'
-          '  malloc(n.int32)');
+      s.writeln('pub fun ${kokaName}c-calloc(): $kokaOwnedName\n'
+          '  malloc-c(?size-of=$kokaName/size-of)');
       s.writeln();
 
-      s.writeln('pub fun ${kokaName}c-array-calloc(n: int): ${kokaName}ca\n'
-          '  malloc-c(n.int32)');
+      s.writeln('pub fun ${kokaName}c-array(n: int): $kokaOwnedArrayName\n'
+          '  malloc(n.int32, ?size-of=$kokaName/size-of)');
+      s.writeln();
+
+      s.writeln(
+          'pub fun ${kokaName}c-array-calloc(n: int): $kokaOwnedArrayName\n'
+          '  malloc-c(n.int32, ?size-of=$kokaName/size-of)');
       s.writeln();
 
       for (final m in members) {
+        final mKokaName = m.name;
+        if (m.type is ConstantArray) {
+          continue;
+        }
         s.writeln(
-            'inline extern ${kokaName}-ptr/${m.name}(s: intptr_t): ${m.type.getFfiDartType(w)}\n'
+            'inline extern $kokaName-ptr/$mKokaName(s: intptr_t): ${m.type.getFfiDartType(w)}\n'
             '  c inline "(($originalName*)#1)->${m.originalName}"');
         s.writeln();
 
         s.writeln(
-            'pub inline fun ${kokaName}c/${m.name}(^s: ${kokaName}c): ${m.type.getFfiDartType(w)}\n'
-            '  s.with-ptr(${kokaName}-ptr/${m.name})');
+            'pub inline fun ${kokaName}c/$mKokaName(^s: $kokaOwnedName): ${m.type.getFfiDartType(w)}\n'
+            '  s.with-ptr($kokaName-ptr/$mKokaName)');
         s.writeln();
 
         s.writeln(
-            'pub inline fun ${kokaName}cb/${m.name}(^s: ${kokaName}cb<s>): ${m.type.getFfiDartType(w)}\n'
-            '  s.with-ptr(${kokaName}-ptr/${m.name})');
+            'pub inline fun ${kokaName}cb/$mKokaName(^s: $kokaBorrowedName): ${m.type.getFfiDartType(w)}\n'
+            '  s.with-ptr($kokaName-ptr/$mKokaName)');
         s.writeln();
 
         s.writeln(
-            'inline extern ${kokaName}-ptr/set-${m.name}(s: intptr_t, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
+            'inline extern $kokaName-ptr/set-$mKokaName(s: intptr_t, $mKokaName: ${m.type.getFfiDartType(w)}): ()\n'
             '  c inline "(($originalName*)#1)->${m.originalName} = #2"');
         s.writeln();
 
         s.writeln(
-            'pub inline fun ${kokaName}c/set-${m.name}(^s: ${kokaName}c, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
-            '  s.with-ptr(fn(p) p.${kokaName}-ptr/set-${m.name}(${m.name}))');
+            'pub inline fun ${kokaName}c/set-$mKokaName(^s: $kokaOwnedName, $mKokaName: ${m.type.getFfiDartType(w)}): ()\n'
+            '  s.with-ptr(fn(kk-internal-ptr) kk-internal-ptr.$kokaName-ptr/set-$mKokaName($mKokaName))');
         s.writeln();
 
         s.writeln(
-            'pub inline fun ${kokaName}cb/set-${m.name}(^s: ${kokaName}cb<s>, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
-            '  s.with-ptr(fn(p) p.${kokaName}-ptr/set-${m.name}(${m.name}))');
+            'pub inline fun ${kokaName}cb/set-$mKokaName(^s: $kokaBorrowedName, $mKokaName: ${m.type.getFfiDartType(w)}): ()\n'
+            '  s.with-ptr(fn(kk-internal-ptr) kk-internal-ptr.$kokaName-ptr/set-$mKokaName($mKokaName))');
         s.writeln();
       }
-
-      s.writeln('pub fun ${kokaName}/to-koka(s: ${kokaName}c): $kokaName\n'
-          '  ${kokaName.capitalize}(${members.map((m) => 's.${m.name}').join(', ')})');
+      if (!sameDartAndFfiDartType) {
+        s.writeln('pub fun $kokaName/to-koka(s: $kokaOwnedName): $kokaName\n'
+            '  ${kokaName.capitalize}(${members.map((m) => m.type is ConstantArray ? 's.${kokaName}c/${m.name.toLowerCase()}.from-vector' : 's.${kokaName}c/${m.name.toLowerCase()}').join(', ')})');
+      }
     }
     return BindingString(
         type: isStruct ? BindingStringType.struct : BindingStringType.union,
@@ -221,14 +233,31 @@ abstract class Compound extends BindingType {
   String getCType(Writer w) => name;
 
   @override
-  String getFfiDartType(Writer w) => name.toLowerCase() + "-c";
+  String getFfiDartType(Writer w) =>
+      "${name.toLowerCase().replaceAll('_', '-')}-c";
 
   @override
   String getDartType(Writer w) =>
-      isOpaque ? getFfiDartType(w) : name.toLowerCase();
-
+      isOpaque ? getFfiDartType(w) : name.toLowerCase().replaceAll('_', '-');
+  late final bool hasArrayMember = members.any((m) => m.type is ConstantArray);
+  late final typeParam = (hasArrayMember ? '<s::S>' : '');
+  String getDartTypeOwned(Writer w) => getDartType(w) + 'c' + typeParam;
+  String getDartTypeBorrowed(Writer w) => getDartType(w) + 'cb<s::S>';
+  String getDartTypeOwnedArray(Writer w) => getDartType(w) + 'ca' + typeParam;
+  @override
+  String convertFfiDartTypeToDartType(
+    Writer w,
+    String value, {
+    required bool objCRetain,
+    String? objCEnclosingClass,
+  }) =>
+      sameDartAndFfiDartType ? value : '$value.to-koka';
   @override
   bool get sameFfiDartAndCType => false;
+
+  @override
+  bool get sameDartAndFfiDartType =>
+      isUnion || isIncomplete || isOpaque || hasArrayMember;
 
   @override
   bool get sameDartAndCType => false;

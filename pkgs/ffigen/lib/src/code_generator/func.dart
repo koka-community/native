@@ -4,10 +4,13 @@
 
 import 'package:ffigen/src/code_generator.dart';
 import 'package:ffigen/src/config_provider/config_types.dart';
+import 'package:logging/logging.dart';
 
 import 'binding_string.dart';
 import 'utils.dart';
 import 'writer.dart';
+
+final _logger = Logger('ffigen.code_generator.func');
 
 /// A binding for C function.
 ///
@@ -93,6 +96,12 @@ class Func extends LookUpBinding {
   BindingString toBindingString(Writer w) {
     final s = StringBuffer();
     final enclosingFuncName = name;
+    if (functionType.returnType is Compound ||
+        functionType.parameters.any((p) => p is Compound)) {
+      _logger.warning(
+          'Cannot generate function $enclosingFuncName with compound types passed by value');
+      return BindingString(type: BindingStringType.constant, string: "");
+    }
 
     if (dartDoc != null) {
       s.write(makeDoc(dartDoc!));

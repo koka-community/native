@@ -258,7 +258,7 @@ class Writer {
     // result.writeln();
     if (ffiNativeBindings.isNotEmpty && nativeAssetId != null) {
       s.writeln("extern import");
-      s.writeln("  c file \"$nativeAssetId\"\n");
+      s.writeln("  $nativeAssetId\n");
       // result
       //   ..writeln("@$ffiLibraryPrefix.DefaultAsset('$nativeAssetId')")
       //   ..writeln('library;\n');
