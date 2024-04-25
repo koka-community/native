@@ -53,8 +53,11 @@ class EnumClass extends BindingType {
     final typeName = enclosingClassName.toLowerCase();
     s.writeln('type ${typeName}');
     const indent = '  ';
+    final names = {
+      for (final ec in enumConstants) ec: localUniqueNamer.makeUnique(ec.name)
+    };
     for (final ec in enumConstants) {
-      final enumValueName = localUniqueNamer.makeUnique(ec.name);
+      final enumValueName = names[ec];
       if (ec.dartDoc != null) {
         s.write('$indent// ');
         s.writeAll(ec.dartDoc!.split('\n'), '\n$indent// ');
@@ -66,17 +69,18 @@ class EnumClass extends BindingType {
     s.writeln('pub fun ${typeName}/int(i: ${typeName}): int');
     s.writeln('  match i');
     for (final ec in enumConstants) {
-      final enumValueName = localUniqueNamer.makeUnique(ec.name);
+      final enumValueName = names[ec];
       s.writeln('    ${enumValueName} -> ${ec.value}');
     }
 
     s.writeln();
-    s.writeln('pub fun int/${typeName}(i: int): ${typeName}');
+    s.writeln('pub fun int/${typeName}(i: int): exn ${typeName}');
     s.writeln('  match i');
     for (final ec in enumConstants) {
-      final enumValueName = localUniqueNamer.makeUnique(ec.name);
+      final enumValueName = names[ec];
       s.writeln('    ${ec.value} -> ${enumValueName}');
     }
+    s.writeln();
     return BindingString(
         type: BindingStringType.enumClass, string: s.toString());
   }

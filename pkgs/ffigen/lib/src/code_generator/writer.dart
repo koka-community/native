@@ -250,12 +250,15 @@ class Writer {
     // Since the annotation goes on a `library;` directive, it needs to appear
     // before other definitions in the file.
     result.writeln();
+    result.writeln("import std/cextern\n"
+        "import std/num/int32\n"
+        "import std/num/int64\n"
+        "import std/num/float64\n");
     // result.writeln("module ${className.toLowerCase()}");
     // result.writeln();
     if (ffiNativeBindings.isNotEmpty && nativeAssetId != null) {
       s.writeln("extern import");
-      s.writeln("  c file \"$nativeAssetId\"");
-      s.writeln();
+      s.writeln("  c file \"$nativeAssetId\"\n");
       // result
       //   ..writeln("@$ffiLibraryPrefix.DefaultAsset('$nativeAssetId')")
       //   ..writeln('library;\n');

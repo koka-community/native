@@ -110,7 +110,7 @@ class Typealias extends BindingType {
     if (dartDoc != null) {
       sb.write(makeDoc(dartDoc!));
     }
-    sb.write('alias $name = ${type.getCType(w)}\n');
+    sb.write('alias $name = ${type.getFfiDartType(w)}\n');
     if (_ffiDartAliasName != null) {
       sb.write('alias $_ffiDartAliasName = ${type.getFfiDartType(w)}\n');
     }
