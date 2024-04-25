@@ -108,7 +108,7 @@ String makeArrayAnnotation(Writer w, ConstantArray arrayType) {
     type = type.child;
   }
 
-  return '@${w.ffiLibraryPrefix}.Array.multi([${dimensions.join(', ')}])';
+  return '// Array.multi([${dimensions.join(', ')}])';
 }
 
 /// The path to the Dart executable.

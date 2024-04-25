@@ -108,7 +108,7 @@ class Func extends LookUpBinding {
     // final dartType = _exposedFunctionTypealias?.getFfiDartType(w) ??
     //     functionType.getFfiDartType(w, writeArgumentNames: false);
     final needsWrapper = !functionType.sameDartAndFfiDartType && !isInternal;
-    print("Needs wrapper $needsWrapper");
+    // print("Needs wrapper $needsWrapper");
     final funcVarName =
         'external/$enclosingFuncName'; // w.wrapperLevelUniqueNamer.makeUnique('_$name');
     final ffiReturnType = functionType.returnType.getCType(w);
@@ -157,8 +157,8 @@ class Func extends LookUpBinding {
   c "$originalName"''');
       s.writeln();
       if (needsWrapper) {
-        print(
-            "Wrapper ${nativeFuncName} ${dartReturnType} ${functionType.returnType.runtimeType} ${functionType.returnType}");
+        // print(
+        //     "Wrapper ${nativeFuncName} ${dartReturnType} ${functionType.returnType.runtimeType} ${functionType.returnType}");
         s.write('''
 pub fun wrapper/$nativeFuncName($dartArgDeclString): $dartReturnType
   $funcImplCall
@@ -169,8 +169,7 @@ pub fun wrapper/$nativeFuncName($dartArgDeclString): $dartReturnType
       if (exposeSymbolAddress) {
         // Add to SymbolAddress in writer.
         w.symbolAddressWriter.addNativeSymbol(
-          type:
-              '${w.ffiLibraryPrefix}.Pointer<${w.ffiLibraryPrefix}.NativeFunction<$cType>>',
+          type: 'owned-c<NativeFunction<$cType>>',
           name: name,
         );
       }
@@ -188,7 +187,7 @@ pub fun wrapper/$nativeFuncName($dartArgDeclString): $dartReturnType
       //   // Add to SymbolAddress in writer.
       //   w.symbolAddressWriter.addSymbol(
       //     type:
-      //         '${w.ffiLibraryPrefix}.Pointer<${w.ffiLibraryPrefix}.NativeFunction<$cType>>',
+      //         'Pointer<NativeFunction<$cType>>',
       //     name: name,
       //     ptrName: funcPointerName,
       //   );

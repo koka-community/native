@@ -65,20 +65,19 @@ class Global extends LookUpBinding {
       }
 
       if (exposeSymbolAddress) {
-        w.symbolAddressWriter.addNativeSymbol(
-            type: '${w.ffiLibraryPrefix}.c-owned<$cType>', name: name);
+        w.symbolAddressWriter
+            .addNativeSymbol(type: 'c-owned<$cType>', name: name);
       }
     } else {
       final pointerName =
           w.wrapperLevelUniqueNamer.makeUnique('_$globalVarName');
 
       s.write(
-          "val $pointerName: ${w.ffiLibraryPrefix}.c-owned<$cType> = ${w.lookupFuncIdentifier}<$cType>('$originalName')\n\n");
+          "val $pointerName: c-owned<$cType> = ${w.lookupFuncIdentifier}<$cType>('$originalName')\n\n");
       final baseTypealiasType = type.typealiasType;
       if (baseTypealiasType is Compound) {
         if (baseTypealiasType.isOpaque) {
-          s.write(
-              'val $globalVarName: ${w.ffiLibraryPrefix}.c-owned<$cType> = $pointerName\n\n');
+          s.write('val $globalVarName: c-owned<$cType> = $pointerName\n\n');
         } else {
           s.write('val $globalVarName: $kokaType = $pointerName.ref\n\n');
         }
@@ -93,7 +92,7 @@ class Global extends LookUpBinding {
       if (exposeSymbolAddress) {
         // Add to SymbolAddress in writer.
         w.symbolAddressWriter.addSymbol(
-          type: '${w.ffiLibraryPrefix}.c-owned<$cType>',
+          type: 'c-owned<$cType>',
           name: name,
           ptrName: pointerName,
         );

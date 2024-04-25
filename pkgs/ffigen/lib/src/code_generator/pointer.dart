@@ -28,8 +28,7 @@ class PointerType extends Type {
   Type get baseType => child.baseType;
 
   @override
-  String getCType(Writer w) =>
-      '${w.ffiLibraryPrefix}.owned-c<${child.getFfiDartType(w)}>';
+  String getCType(Writer w) => 'owned-c<${child.getFfiDartType(w)}>';
 
   // Both the C type and the FFI Dart type are 'Pointer<$cType>'.
   @override
@@ -65,7 +64,7 @@ class ConstantArray extends PointerType {
   @override
   String getCType(Writer w) {
     if (useArrayType) {
-      return '${w.ffiLibraryPrefix}.c-array<${child.getCType(w)}>';
+      return 'c-array<${child.getCType(w)}>';
     }
 
     return super.getCType(w);
@@ -87,7 +86,7 @@ class IncompleteArray extends PointerType {
 
   @override
   String getCType(Writer w) {
-    return '${w.ffiLibraryPrefix}.c-array<${child.getCType(w)}>';
+    return 'c-array<${child.getCType(w)}>';
   }
 }
 

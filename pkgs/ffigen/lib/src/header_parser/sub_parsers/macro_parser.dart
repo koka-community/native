@@ -148,8 +148,8 @@ int _macroVariablevisitor(clang_types.CXCursor cursor,
             usr: savedMacros[macroName]!.usr,
             originalName: savedMacros[macroName]!.originalName,
             name: macroName,
-            rawType: 'String',
-            rawValue: "'$rawValue'",
+            rawType: 'string',
+            rawValue: '"$rawValue"',
           );
           break;
       }
@@ -309,9 +309,9 @@ String _getWritableChar(int char, {bool utf8 = true}) {
   /// Handle characters - `$ ' \` these need to be escaped when writing to file.
   switch (char) {
     case 36: // $
-      return r'\$';
-    case 39: // '
-      return r"\'";
+      return r'$';
+    case 34: // "
+      return r'\"';
     case 92: // \
       return r'\\';
   }

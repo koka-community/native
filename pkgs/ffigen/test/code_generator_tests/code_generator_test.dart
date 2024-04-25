@@ -118,7 +118,7 @@ void main() {
       _matchLib(library, nativeConfig.enabled ? 'function' : 'function_dylib');
     });
 
-    test(skip: true, 'Struct Binding (primitives, pointers)', () {
+    test('Struct Binding (primitives, pointers)', () {
       final library = Library(
         name: 'Bindings',
         header: licenseHeader,

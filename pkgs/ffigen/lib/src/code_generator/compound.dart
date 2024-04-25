@@ -82,7 +82,7 @@ abstract class Compound extends BindingType {
 
   String _getInlineArrayTypeString(Type type, Writer w) {
     if (type is ConstantArray) {
-      return '${w.ffiLibraryPrefix}.Array<'
+      return 'c-array<'
           '${_getInlineArrayTypeString(type.child, w)}>';
     }
     return type.getCType(w);
@@ -108,7 +108,7 @@ abstract class Compound extends BindingType {
 
     /// Write @Packed(X) annotation if struct is packed.
     if (isStruct && pack != null) {
-      s.write('// @${w.ffiLibraryPrefix}.Packed($pack)\n');
+      s.write('// Packed($pack)\n');
     }
     final kokaClassName = isStruct ? 'struct' : 'type';
     // Write class declaration.
@@ -138,15 +138,13 @@ abstract class Compound extends BindingType {
       s.writeln();
     }
     s.writeln('pub type $kokaFfiName');
+    s.writeln('alias ${name.toLowerCase()}c = owned-c<$kokaFfiName>');
     s.writeln(
-        'alias ${name.toLowerCase()}c = ${w.ffiLibraryPrefix}.owned-c<$kokaFfiName>');
+        'alias ${name.toLowerCase()}cb<s> = borrowed-c<s,${kokaFfiName}>');
     s.writeln(
-        'alias ${name.toLowerCase()}cb = ${w.ffiLibraryPrefix}.borrowed-c<${kokaFfiName}>');
-    s.writeln(
-        'alias ${name.toLowerCase()}ca = ${w.ffiLibraryPrefix}.owned-c<${w.ffiLibraryPrefix}.c-array<${kokaFfiName}>>\n');
+        'alias ${name.toLowerCase()}ca = owned-c<c-array<${kokaFfiName}>>\n');
     if (!isOpaque) {
-      s.writeln(
-          'fun size-of(c: ${w.ffiLibraryPrefix}.c-null<$kokaFfiName>): int32\n'
+      s.writeln('extern ${kokaName}/size-of(c: c-null<$kokaFfiName>): int32\n'
           '  c inline "sizeof($originalName)"');
 
       s.writeln();
@@ -178,7 +176,7 @@ abstract class Compound extends BindingType {
         s.writeln();
 
         s.writeln(
-            'pub inline fun ${kokaName}cb/${m.name}(^s: ${kokaName}cb): ${m.type.getFfiDartType(w)}\n'
+            'pub inline fun ${kokaName}cb/${m.name}(^s: ${kokaName}cb<s>): ${m.type.getFfiDartType(w)}\n'
             '  s.with-ptr(${kokaName}-ptr/${m.name})');
         s.writeln();
 
@@ -193,7 +191,7 @@ abstract class Compound extends BindingType {
         s.writeln();
 
         s.writeln(
-            'pub inline fun ${kokaName}cb/set-${m.name}(^s: ${kokaName}cb, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
+            'pub inline fun ${kokaName}cb/set-${m.name}(^s: ${kokaName}cb<s>, ${m.name}: ${m.type.getFfiDartType(w)}): ()\n'
             '  s.with-ptr(fn(p) p.${kokaName}-ptr/set-${m.name}(${m.name}))');
         s.writeln();
       }

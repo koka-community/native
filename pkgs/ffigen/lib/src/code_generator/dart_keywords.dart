@@ -69,4 +69,5 @@ const keywords = {
   'while',
   'with',
   'yield',
+  'type',
 };

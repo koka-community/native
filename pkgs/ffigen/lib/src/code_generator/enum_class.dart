@@ -63,11 +63,19 @@ class EnumClass extends BindingType {
       s.writeln('${indent}$enumValueName');
     }
     s.writeln();
-    s.writeln('pub ${typeName}/int(i: ${typeName}): int');
+    s.writeln('pub fun ${typeName}/int(i: ${typeName}): int');
     s.writeln('  match i');
     for (final ec in enumConstants) {
       final enumValueName = localUniqueNamer.makeUnique(ec.name);
-      s.writeln('    | ${enumValueName} -> ${ec.value}');
+      s.writeln('    ${enumValueName} -> ${ec.value}');
+    }
+
+    s.writeln();
+    s.writeln('pub fun int/${typeName}(i: int): ${typeName}');
+    s.writeln('  match i');
+    for (final ec in enumConstants) {
+      final enumValueName = localUniqueNamer.makeUnique(ec.name);
+      s.writeln('    ${ec.value} -> ${enumValueName}');
     }
     return BindingString(
         type: BindingStringType.enumClass, string: s.toString());

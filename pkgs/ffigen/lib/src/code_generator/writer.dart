@@ -250,8 +250,8 @@ class Writer {
     // Since the annotation goes on a `library;` directive, it needs to appear
     // before other definitions in the file.
     result.writeln();
-    result.writeln("module ${className.toLowerCase()}");
-    result.writeln();
+    // result.writeln("module ${className.toLowerCase()}");
+    // result.writeln();
     if (ffiNativeBindings.isNotEmpty && nativeAssetId != null) {
       s.writeln("extern import");
       s.writeln("  c file \"$nativeAssetId\"");
@@ -304,7 +304,7 @@ class Writer {
     // Write neccesary imports.
     for (final lib in _usedImports) {
       final path = lib.importPath(generateForPackageObjectiveC);
-      result.writeln("import $path as ${lib.prefix}\n");
+      result.writeln("import $path\n");
     }
     result.write(s);
 
@@ -415,7 +415,7 @@ class SymbolAddressWriter {
         // The name of address getter shadows the actual element in the library,
         // so we need to use a self-import.
         final arg = '${w.selfImportPrefix}.${address.name}';
-        sb.writeln('${w.ffiLibraryPrefix}.Native.addressOf($arg);');
+        sb.writeln('// Native.addressOf($arg);');
       } else {
         // For other elements, the generator will write a private field of type
         // Pointer which we can reference here.

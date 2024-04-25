@@ -40,10 +40,9 @@ class FunctionType extends Type {
 
     // Write return Type.
     final sb = StringBuffer();
-    sb.write(typeToString(returnType));
 
     // Write Function.
-    sb.write(' Function(');
+    sb.write('((');
     sb.write([
       ...params.map<String>((p) {
         return '${typeToString(p.type)} ${writeArgumentNames ? p.name : ""}';
@@ -51,6 +50,7 @@ class FunctionType extends Type {
       if (varArgPack != null) varArgPack,
     ].join(', '));
     sb.write(')');
+    sb.write(' -> ${typeToString(returnType)})');
 
     return sb.toString();
   }
