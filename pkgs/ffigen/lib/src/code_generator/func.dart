@@ -123,7 +123,7 @@ class Func extends LookUpBinding {
         'external/$enclosingFuncName'; // w.wrapperLevelUniqueNamer.makeUnique('_$name');
     final ffiReturnType = functionType.returnType.getFfiDartType(w);
     final ffiArgDeclString = functionType.dartTypeParameters
-        .map((p) => '${p.name}: ${p.type.getFfiDartType(w)}')
+        .map((p) => '^${p.name}: ${p.type.getFfiDartType(w)}')
         .join(', ');
     final ffiArgs = functionType.dartTypeParameters
         .mapIndexed((i, p) => '(${p.type.getCType(w)})#${i + 1}')
@@ -136,7 +136,7 @@ class Func extends LookUpBinding {
     if (needsWrapper) {
       dartReturnType = functionType.returnType.getDartType(w);
       dartArgDeclString = functionType.dartTypeParameters
-          .map((p) => '${p.name}: ${p.type.getDartType(w)}')
+          .map((p) => '^${p.name}: ${p.type.getDartType(w)}')
           .join(', ');
       final namer = UniqueNamer({});
       final argString = functionType.dartTypeParameters

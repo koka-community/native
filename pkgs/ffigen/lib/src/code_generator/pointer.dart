@@ -62,6 +62,9 @@ class PointerType extends Type {
     required StringBuffer additionalStatements,
     required UniqueNamer namer,
   }) {
+    if (baseType is NativeFunc) {
+      return value;
+    }
     final ptr = namer.makeUnique('koka-ptr');
     additionalStatements.write('with $ptr <- $value.with-ptr\n  ');
     return ptr;
@@ -73,6 +76,9 @@ class PointerType extends Type {
       String? objCEnclosingClass,
       required StringBuffer additionalStatements,
       required UniqueNamer namer}) {
+    if (baseType is NativeFunc) {
+      return value;
+    }
     return '$value.c-own';
   }
 

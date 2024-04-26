@@ -160,7 +160,7 @@ abstract class Compound extends BindingType {
     s.writeln();
 
     if (!isOpaque) {
-      s.writeln('extern $kokaName/size-of(c: c-null<$kokaFfiName>): int32\n'
+      s.writeln('pub extern $kokaName/size-of(c: c-null<$kokaFfiName>): int32\n'
           '  c inline "sizeof($cfulltype)"\n');
 
       s.writeln('pub fun ${kokaName}c(): $kokaOwnedName\n'
@@ -185,7 +185,7 @@ abstract class Compound extends BindingType {
           continue;
         }
         s.writeln(
-            'inline extern $kokaName-ptr/$mKokaName(s: intptr_t): ${m.type.getFfiDartType(w)}\n'
+            'pub inline extern $kokaName-ptr/$mKokaName(s: intptr_t): ${m.type.getFfiDartType(w)}\n'
             '  c inline "(${m.type.isPointerType ? 'intptr_t' : m.type.getCType(w)})((($cfulltype*)#1)->${m.originalName})"');
         s.writeln();
 
@@ -200,7 +200,7 @@ abstract class Compound extends BindingType {
         s.writeln();
 
         s.writeln(
-            'inline extern $kokaName-ptr/set-$mKokaName(s: intptr_t, $mKokaName: ${m.type.getFfiDartType(w)}): ()\n'
+            'pub inline extern $kokaName-ptr/set-$mKokaName(s: intptr_t, $mKokaName: ${m.type.getFfiDartType(w)}): ()\n'
             '  c inline "(($cfulltype*)#1)->${m.originalName} = (${m.type.baseType is Compound && m.type.isPointerType ? (m.type.baseType as Compound).cfulltype + "*" : m.type.getCType(w)})#2"');
         s.writeln();
 
