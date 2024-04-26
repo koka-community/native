@@ -74,10 +74,11 @@ class Typealias extends BindingType {
     bool genFfiDartType = false,
     super.isInternal,
   })  : _ffiDartAliasName = genFfiDartType ? 'koka-$name' : null,
-        _dartAliasName =
-            (!genFfiDartType && type is! Typealias && !type.sameDartAndCType)
-                ? 'koka-$name'
-                : null,
+        _dartAliasName = (!genFfiDartType &&
+                type is! Typealias &&
+                !type.sameDartAndFfiDartType)
+            ? 'koka-$name'
+            : null,
         super(
           name: genFfiDartType
               ? 'native-$name'
@@ -117,7 +118,7 @@ class Typealias extends BindingType {
     }
     sb.write('alias $name = ${type.getFfiDartType(w)}\n');
     if (_ffiDartAliasName != null) {
-      sb.write('alias $_ffiDartAliasName = ${type.getFfiDartType(w)}\n');
+      // sb.write('alias $_ffiDartAliasName = ${type.getFfiDartType(w)}\n');
     }
     if (_dartAliasName != null) {
       sb.write('alias $_dartAliasName = ${type.getDartType(w)}\n');
@@ -137,9 +138,7 @@ class Typealias extends BindingType {
 
   @override
   String getFfiDartType(Writer w) {
-    if (_ffiDartAliasName != null) {
-      return _ffiDartAliasName!;
-    } else if (type.sameFfiDartAndCType) {
+    if (type.sameFfiDartAndCType) {
       return name;
     } else {
       return type.getFfiDartType(w);

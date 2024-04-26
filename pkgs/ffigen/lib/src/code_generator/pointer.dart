@@ -35,7 +35,9 @@ class PointerType extends Type {
   String getFfiDartType(Writer w) => 'intptr_t';
 
   @override
-  String getDartType(Writer w) => 'owned-c<${child.getFfiDartType(w)}>';
+  String getDartType(Writer w) => baseType is NativeFunc
+      ? 'intptr_t'
+      : 'owned-c<${child.getFfiDartType(w)}>';
 
   // Both the C type and the FFI Dart type are 'Pointer<$cType>'.
   @override
@@ -45,7 +47,7 @@ class PointerType extends Type {
   bool get sameDartAndCType => false;
 
   @override
-  bool get sameDartAndFfiDartType => false;
+  bool get sameDartAndFfiDartType => baseType is NativeFunc;
 
   @override
   String toString() => '$child*';
