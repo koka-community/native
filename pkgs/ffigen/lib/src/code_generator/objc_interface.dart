@@ -199,17 +199,18 @@ class $name extends ${superType?.getDartType(w) ?? wrapObjType} {
           w,
           isStatic ? _classObject.name : 'this.pointer',
           m.selObject!.name,
-          m.params.map((p) => p.type
-              .convertDartTypeToFfiDartType(w, p.name, objCRetain: false)),
+          m.params.map((p) => p.type.convertDartTypeToFfiDartType(w, p.name,
+              objCRetain: false,
+              additionalStatements: StringBuffer(),
+              namer: UniqueNamer({}))),
           structRetPtr: 'stret'));
       s.write(';\n');
       if (convertReturn) {
-        final result = returnType.convertFfiDartTypeToDartType(
-          w,
-          '_ret',
-          objCRetain: !m.isOwnedReturn,
-          objCEnclosingClass: name,
-        );
+        final result = returnType.convertFfiDartTypeToDartType(w, '_ret',
+            objCRetain: !m.isOwnedReturn,
+            objCEnclosingClass: name,
+            additionalStatements: StringBuffer(),
+            namer: UniqueNamer({}));
         s.write('    return $result;');
       }
 
@@ -348,6 +349,8 @@ class $name extends ${superType?.getDartType(w) ?? wrapObjType} {
     Writer w,
     String value, {
     required bool objCRetain,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
       ObjCInterface.generateGetId(value, objCRetain);
 
@@ -360,6 +363,8 @@ class $name extends ${superType?.getDartType(w) ?? wrapObjType} {
     String value, {
     required bool objCRetain,
     String? objCEnclosingClass,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
       ObjCInterface.generateConstructor(getDartType(w), value, objCRetain);
 

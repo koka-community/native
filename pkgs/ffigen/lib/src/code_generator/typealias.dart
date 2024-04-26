@@ -79,7 +79,12 @@ class Typealias extends BindingType {
                 ? 'koka-$name'
                 : null,
         super(
-          name: genFfiDartType ? 'native-$name' : name,
+          name: genFfiDartType
+              ? 'native-$name'
+              : name
+                  .toLowerCase()
+                  .replaceAll('_', '-')
+                  .replaceAll('s::s', 's::S'),
         );
 
   @override
@@ -128,7 +133,7 @@ class Typealias extends BindingType {
   bool get isIncompleteCompound => type.isIncompleteCompound;
 
   @override
-  String getCType(Writer w) => name;
+  String getCType(Writer w) => originalName;
 
   @override
   String getFfiDartType(Writer w) {
@@ -166,8 +171,13 @@ class Typealias extends BindingType {
     Writer w,
     String value, {
     required bool objCRetain,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
-      type.convertDartTypeToFfiDartType(w, value, objCRetain: objCRetain);
+      type.convertDartTypeToFfiDartType(w, value,
+          objCRetain: objCRetain,
+          additionalStatements: additionalStatements,
+          namer: namer);
 
   @override
   String convertFfiDartTypeToDartType(
@@ -175,19 +185,24 @@ class Typealias extends BindingType {
     String value, {
     required bool objCRetain,
     String? objCEnclosingClass,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
-      type.convertFfiDartTypeToDartType(
-        w,
-        value,
-        objCRetain: objCRetain,
-        objCEnclosingClass: objCEnclosingClass,
-      );
+      type.convertFfiDartTypeToDartType(w, value,
+          objCRetain: objCRetain,
+          objCEnclosingClass: objCEnclosingClass,
+          additionalStatements: additionalStatements,
+          namer: namer);
 
   @override
   String cacheKey() => type.cacheKey();
 
   @override
   String? getDefaultValue(Writer w) => type.getDefaultValue(w);
+
+  @override
+  // TODO: implement isPointerType
+  bool get isPointerType => typealiasType.isPointerType;
 }
 
 /// Objective C's instancetype.
@@ -211,6 +226,9 @@ class ObjCInstanceType extends Typealias {
     Writer w,
     String value, {
     required bool objCRetain,
+    String Function(String)? continuation,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
       ObjCInterface.generateGetId(value, objCRetain);
 
@@ -220,6 +238,9 @@ class ObjCInstanceType extends Typealias {
     String value, {
     required bool objCRetain,
     String? objCEnclosingClass,
+    String Function(String)? continuation,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
       // objCEnclosingClass must be present, because instancetype can only
       // occur inside a class.

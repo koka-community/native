@@ -66,11 +66,19 @@ class Global extends LookUpBinding {
       s.writeln('pub extern external/$globalVarName(): $kokaFfiType\n'
           '  c inline "$name"\n');
       if (constant) {
-        s.writeln(
-            'pub val wrapper/$globalVarName: $kokaType = ${type.convertFfiDartTypeToDartType(w, 'external/$globalVarName()', objCRetain: false)}\n');
+        final namer = UniqueNamer({});
+        final ret = type.convertFfiDartTypeToDartType(
+            w, 'external/$globalVarName()',
+            objCRetain: false, additionalStatements: s, namer: namer);
+
+        s.writeln('pub val wrapper/$globalVarName: $kokaType = $ret\n');
       } else {
-        s.writeln('pub fun wrapper/$globalVarName(): $kokaType\n'
-            '  ${type.convertFfiDartTypeToDartType(w, 'external/$globalVarName()', objCRetain: true)}\n');
+        final namer = UniqueNamer({});
+        s.writeln('pub fun wrapper/$globalVarName(): $kokaType');
+        final ret = type.convertFfiDartTypeToDartType(
+            w, 'external/$globalVarName()',
+            objCRetain: true, additionalStatements: s, namer: namer);
+        s.writeln('  $ret\n');
       }
 
       if (exposeSymbolAddress) {

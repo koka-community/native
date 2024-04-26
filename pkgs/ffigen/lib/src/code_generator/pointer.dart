@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:ffigen/src/code_generator.dart';
+import 'package:ffigen/src/code_generator/utils.dart';
 
 import 'writer.dart';
 
@@ -28,17 +29,81 @@ class PointerType extends Type {
   Type get baseType => child.baseType;
 
   @override
-  String getCType(Writer w) => 'owned-c<${child.getFfiDartType(w)}>';
+  String getCType(Writer w) => '${child.getCType(w)}*';
+
+  @override
+  String getFfiDartType(Writer w) => 'intptr_t';
+
+  @override
+  String getDartType(Writer w) => 'owned-c<${child.getFfiDartType(w)}>';
 
   // Both the C type and the FFI Dart type are 'Pointer<$cType>'.
   @override
-  bool get sameFfiDartAndCType => true;
+  bool get sameFfiDartAndCType => false;
+
+  @override
+  bool get sameDartAndCType => false;
+
+  @override
+  bool get sameDartAndFfiDartType => false;
 
   @override
   String toString() => '$child*';
 
   @override
   String cacheKey() => '${child.cacheKey()}*';
+  @override
+  String convertDartTypeToFfiDartType(
+    Writer w,
+    String value, {
+    required bool objCRetain,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
+  }) {
+    final ptr = namer.makeUnique('koka-ptr');
+    additionalStatements.write('with $ptr <- $value.with-ptr\n  ');
+    return ptr;
+  }
+
+  @override
+  String convertFfiDartTypeToDartType(Writer w, String value,
+      {required bool objCRetain,
+      String? objCEnclosingClass,
+      required StringBuffer additionalStatements,
+      required UniqueNamer namer}) {
+    return '$value.c-own';
+  }
+
+  @override
+  bool get isPointerType => true;
+}
+
+class BorrowedPointerType extends PointerType {
+  BorrowedPointerType(Type child) : super._(child);
+
+  @override
+  String getDartType(Writer w) => 'borrowed-c<s,${child.getFfiDartType(w)}>';
+
+  @override
+  String getCType(Writer w) => '${child.getCType(w)}*';
+
+  @override
+  String getFfiDartType(Writer w) => 'intptr_t';
+
+  @override
+  String toString() => 'borrowed ${child}*';
+
+  @override
+  String convertFfiDartTypeToDartType(Writer w, String value,
+      {required bool objCRetain,
+      String? objCEnclosingClass,
+      required StringBuffer additionalStatements,
+      required UniqueNamer namer}) {
+    return '$value.c-borrow';
+  }
+
+  @override
+  String cacheKey() => 'borrowed ${child.cacheKey()}';
 }
 
 /// Represents a constant array, which has a fixed size.
@@ -62,13 +127,7 @@ class ConstantArray extends PointerType {
   String cacheKey() => '${child.cacheKey()}[$length]';
 
   @override
-  String getCType(Writer w) {
-    if (useArrayType) {
-      return 'c-array<${child.getCType(w)}>';
-    }
-
-    return super.getCType(w);
-  }
+  String getDartType(Writer w) => 'owned-c<c-array<${child.getDartType(w)}>>';
 }
 
 /// Represents an incomplete array, which has an unknown size.
@@ -85,9 +144,7 @@ class IncompleteArray extends PointerType {
   String cacheKey() => '${child.cacheKey()}[]';
 
   @override
-  String getCType(Writer w) {
-    return 'c-array<${child.getCType(w)}>';
-  }
+  String getDartType(Writer w) => 'owned-c<c-array<${child.getDartType(w)}>>';
 }
 
 /// A pointer to an NSObject.
@@ -113,6 +170,8 @@ class ObjCObjectPointer extends PointerType {
     Writer w,
     String value, {
     required bool objCRetain,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
       ObjCInterface.generateGetId(value, objCRetain);
 
@@ -122,6 +181,8 @@ class ObjCObjectPointer extends PointerType {
     String value, {
     required bool objCRetain,
     String? objCEnclosingClass,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
       ObjCInterface.generateConstructor(getDartType(w), value, objCRetain);
 }

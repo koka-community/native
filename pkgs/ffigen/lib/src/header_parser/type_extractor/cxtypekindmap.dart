@@ -9,6 +9,7 @@ import '../../code_generator/native_type.dart';
 
 var cxTypeKindToImportedTypes = <String, NativeType>{
   'void': voidType,
+  'void*': voidStarType,
   'unsigned char': unsignedCharType,
   'signed char': signedCharType,
   'char': charType,

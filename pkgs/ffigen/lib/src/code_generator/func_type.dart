@@ -138,7 +138,7 @@ class NativeFunc extends Type {
   String getCType(Writer w) => '${_type.getCType(w)}';
 
   @override
-  String getFfiDartType(Writer w) => getCType(w);
+  String getFfiDartType(Writer w) => type.getFfiDartType(w);
 
   @override
   bool get sameFfiDartAndCType => true;

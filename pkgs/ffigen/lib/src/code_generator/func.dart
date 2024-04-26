@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:ffigen/src/code_generator.dart';
 import 'package:ffigen/src/config_provider/config_types.dart';
 import 'package:logging/logging.dart';
@@ -120,29 +121,33 @@ class Func extends LookUpBinding {
     // print("Needs wrapper $needsWrapper");
     final funcVarName =
         'external/$enclosingFuncName'; // w.wrapperLevelUniqueNamer.makeUnique('_$name');
-    final ffiReturnType = functionType.returnType.getCType(w);
+    final ffiReturnType = functionType.returnType.getFfiDartType(w);
     final ffiArgDeclString = functionType.dartTypeParameters
-        .map((p) => '${p.name}: ${p.type.getCType(w)}')
+        .map((p) => '${p.name}: ${p.type.getFfiDartType(w)}')
         .join(', ');
-
+    final ffiArgs = functionType.dartTypeParameters
+        .mapIndexed((i, p) => '(${p.type.getCType(w)})#${i + 1}')
+        .join(', ');
     late final String dartReturnType;
     late final String dartArgDeclString;
+
     late final String funcImplCall;
+    final strBuff = StringBuffer();
     if (needsWrapper) {
       dartReturnType = functionType.returnType.getDartType(w);
       dartArgDeclString = functionType.dartTypeParameters
           .map((p) => '${p.name}: ${p.type.getDartType(w)}')
           .join(', ');
-
+      final namer = UniqueNamer({});
       final argString = functionType.dartTypeParameters
-          .map((p) =>
-              '${p.type.convertDartTypeToFfiDartType(w, p.name, objCRetain: false)}')
+          .map((p) => p.type.convertDartTypeToFfiDartType(w, p.name,
+              objCRetain: false, additionalStatements: strBuff, namer: namer))
           .join(', ');
       funcImplCall = functionType.returnType.convertFfiDartTypeToDartType(
-        w,
-        '$funcVarName($argString)',
-        objCRetain: !objCReturnsRetained,
-      );
+          w, '$funcVarName($argString)',
+          objCRetain: !objCReturnsRetained,
+          additionalStatements: strBuff,
+          namer: namer);
     } else {
       dartReturnType = ffiReturnType;
       dartArgDeclString = ffiArgDeclString;
@@ -161,18 +166,16 @@ class Func extends LookUpBinding {
 //         nativeSymbolName: originalName,
 //         isLeaf: isLeaf,
 //       )}
+
       s.writeln(
           '''pub extern external/$nativeFuncName($ffiArgDeclString): $ffiReturnType
-  c "$originalName"''');
-      s.writeln();
+  c inline "$originalName($ffiArgs)"\n''');
       if (needsWrapper) {
         // print(
-        //     "Wrapper ${nativeFuncName} ${dartReturnType} ${functionType.returnType.runtimeType} ${functionType.returnType}");
-        s.write('''
+        //     "Wrapper ${nativeFuncName} ${functionType.parameters.map((e) => e.type.runtimeType)} ${functionType.returnType}");
+        s.writeln('''
 pub fun wrapper/$nativeFuncName($dartArgDeclString): $dartReturnType
-  $funcImplCall
-
-''');
+  ${strBuff.toString()}$funcImplCall\n''');
       }
 
       if (exposeSymbolAddress) {

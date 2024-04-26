@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:ffigen/src/code_generator.dart';
+import 'package:ffigen/src/code_generator/utils.dart';
 
 import 'binding_string.dart';
 import 'writer.dart';
@@ -112,12 +113,16 @@ $returnFfiDartType $closureTrampoline($blockCType block, $paramsFfiDartType) =>
     // Snippet that converts a Dart typed closure to FfiDart type. This snippet
     // is used below. Note that the closure being converted is called `fn`.
     final convertedFnArgs = params
-        .map((p) =>
-            p.type.convertFfiDartTypeToDartType(w, p.name, objCRetain: true))
+        .map((p) => p.type.convertFfiDartTypeToDartType(w, p.name,
+            objCRetain: true,
+            additionalStatements: StringBuffer(),
+            namer: UniqueNamer({})))
         .join(', ');
     final convFnInvocation = returnType.convertDartTypeToFfiDartType(
         w, 'fn($convertedFnArgs)',
-        objCRetain: true);
+        objCRetain: true,
+        additionalStatements: StringBuffer(),
+        namer: UniqueNamer({}));
     final convFn = '($paramsFfiDartType) => $convFnInvocation';
 
     // Write the wrapper class.
@@ -187,14 +192,18 @@ class $name extends ${ObjCBuiltInFunctions.blockBase.gen(w)} {
     // Call method.
     s.write('  ${returnType.getDartType(w)} call($paramsDartType) =>');
     final callMethodArgs = params
-        .map((p) =>
-            p.type.convertDartTypeToFfiDartType(w, p.name, objCRetain: false))
+        .map((p) => p.type.convertDartTypeToFfiDartType(w, p.name,
+            objCRetain: false,
+            additionalStatements: StringBuffer(),
+            namer: UniqueNamer({})))
         .join(', ');
     final callMethodInvocation = '''
 pointer.ref.invoke.cast<$natTrampFnType>().asFunction<$trampFuncFfiDartType>()(
     pointer, $callMethodArgs)''';
     s.write(returnType.convertFfiDartTypeToDartType(w, callMethodInvocation,
-        objCRetain: false));
+        objCRetain: false,
+        additionalStatements: StringBuffer(),
+        namer: UniqueNamer({})));
     s.write(';\n');
 
     s.write('}\n');
@@ -233,6 +242,8 @@ pointer.ref.invoke.cast<$natTrampFnType>().asFunction<$trampFuncFfiDartType>()(
     Writer w,
     String value, {
     required bool objCRetain,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
       ObjCInterface.generateGetId(value, objCRetain);
 
@@ -242,6 +253,8 @@ pointer.ref.invoke.cast<$natTrampFnType>().asFunction<$trampFuncFfiDartType>()(
     String value, {
     required bool objCRetain,
     String? objCEnclosingClass,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
       ObjCInterface.generateConstructor(name, value, objCRetain);
 

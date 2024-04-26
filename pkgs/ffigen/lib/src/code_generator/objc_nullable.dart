@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:ffigen/src/code_generator.dart';
+import 'package:ffigen/src/code_generator/utils.dart';
 
 import 'writer.dart';
 
@@ -52,12 +53,19 @@ class ObjCNullable extends Type {
     Writer w,
     String value, {
     required bool objCRetain,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) {
     // This is a bit of a hack, but works for all the types that are allowed to
     // be a child type. If we add more allowed child types, we may have to start
     // special casing each type. Turns value._id into value?._id ?? nullptr.
-    final convertedValue = child.convertDartTypeToFfiDartType(w, '$value?',
-        objCRetain: objCRetain);
+    final convertedValue = child.convertDartTypeToFfiDartType(
+      w,
+      '$value?',
+      objCRetain: objCRetain,
+      additionalStatements: additionalStatements,
+      namer: namer,
+    );
     return '$convertedValue ?? ${w.ffiLibraryPrefix}.nullptr';
   }
 
@@ -67,6 +75,8 @@ class ObjCNullable extends Type {
     String value, {
     required bool objCRetain,
     String? objCEnclosingClass,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) {
     // All currently supported child types have a Pointer as their FfiDartType.
     final convertedValue = child.convertFfiDartTypeToDartType(
@@ -74,6 +84,8 @@ class ObjCNullable extends Type {
       value,
       objCRetain: objCRetain,
       objCEnclosingClass: objCEnclosingClass,
+      additionalStatements: additionalStatements,
+      namer: namer,
     );
     return '$value.address == 0 ? null : $convertedValue';
   }

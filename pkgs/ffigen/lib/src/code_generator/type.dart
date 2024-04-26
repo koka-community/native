@@ -4,6 +4,7 @@
 
 import 'package:ffigen/src/code_generator.dart';
 
+import 'utils.dart';
 import 'writer.dart';
 
 /// Type class for return types, variable types, etc.
@@ -15,6 +16,8 @@ abstract class Type {
 
   /// Get all dependencies of this type and save them in [dependencies].
   void addDependencies(Set<Binding> dependencies) {}
+
+  bool get isPointerType => false;
 
   /// Get base type for any type.
   ///
@@ -66,6 +69,8 @@ abstract class Type {
     Writer w,
     String value, {
     required bool objCRetain,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
       value;
 
@@ -82,6 +87,8 @@ abstract class Type {
     String value, {
     required bool objCRetain,
     String? objCEnclosingClass,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
       value;
 
@@ -119,6 +126,9 @@ abstract class BindingType extends NoLookUpBinding implements Type {
   });
 
   @override
+  bool get isPointerType => false;
+
+  @override
   Type get baseType => this;
 
   @override
@@ -147,6 +157,8 @@ abstract class BindingType extends NoLookUpBinding implements Type {
     Writer w,
     String value, {
     required bool objCRetain,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
       value;
 
@@ -156,6 +168,8 @@ abstract class BindingType extends NoLookUpBinding implements Type {
     String value, {
     required bool objCRetain,
     String? objCEnclosingClass,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
   }) =>
       value;
 
