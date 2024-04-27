@@ -47,16 +47,17 @@ class ImportedType extends Type {
       [this.defaultValue]);
 
   @override
-  String getCType(Writer w) {
+  String getKokaExternType(Writer w) {
     w.markImportUsed(libraryImport);
     return '${libraryImport.prefix}.$cType';
   }
 
   @override
-  String getFfiDartType(Writer w) => cType == dartType ? getCType(w) : dartType;
+  String getKokaFFIType(Writer w) =>
+      cType == dartType ? getKokaExternType(w) : dartType;
 
   @override
-  bool get sameFfiDartAndCType => cType == dartType;
+  bool get sameExternAndFFIType => cType == dartType;
 
   @override
   String toString() => '${libraryImport.name}.$cType';
@@ -75,13 +76,13 @@ class SelfImportedType extends Type {
   SelfImportedType(this.cType, this.dartType, [this.defaultValue]);
 
   @override
-  String getCType(Writer w) => cType;
+  String getKokaExternType(Writer w) => cType;
 
   @override
-  String getFfiDartType(Writer w) => dartType;
+  String getKokaFFIType(Writer w) => dartType;
 
   @override
-  bool get sameFfiDartAndCType => cType == dartType;
+  bool get sameExternAndFFIType => cType == dartType;
 
   @override
   String toString() => cType;

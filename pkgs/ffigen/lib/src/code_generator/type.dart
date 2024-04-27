@@ -38,34 +38,38 @@ abstract class Type {
   /// Returns true if the type is a [Compound] and is incomplete.
   bool get isIncompleteCompound => false;
 
-  /// Returns the C type of the Type. This is the FFI compatible type that is
-  /// passed to native code.
-  String getCType(Writer w) => throw 'No mapping for type: $this';
+  /// Return the type that should be casted in the function (C) signature - should be exactly equal to the C type.
+  String getRawCType(Writer w) => throw 'No mapping for type: $this';
 
-  /// Returns the Dart type of the Type. This is the type that is passed from
-  /// FFI to Dart code.
-  String getFfiDartType(Writer w) => getCType(w);
+  /// Returns the raw extern ffi definition type. This is the basic bool, sized int or intptr_t type that can be cast directly to the C signature
+  String getKokaExternType(Writer w) => getRawCType(w);
+
+  /// Returns the simply wrapped type (e.g. c-pointer<type> for pointers, c-array<type> for arrays, etc.)
+  String getKokaFFIType(Writer w) => getKokaExternType(w);
 
   /// Returns the user type of the Type. This is the type that is presented to
   /// users by the ffigened API to users. For C bindings this is always the same
-  /// as getFfiDartType. For ObjC bindings this refers to the wrapper object.
-  String getDartType(Writer w) => getFfiDartType(w);
+  /// as getKokaFFIType. For ObjC bindings this refers to the wrapper object.
+  String getKokaWrapperType(Writer w) => getKokaFFIType(w);
 
-  /// Returns whether the FFI dart type and C type string are same.
-  bool get sameFfiDartAndCType;
+  /// Returns whether the FFI koka type and extern koka type string are same.
+  bool get sameExternAndFFIType;
 
-  /// Returns whether the dart type and C type string are same.
-  bool get sameDartAndCType => sameFfiDartAndCType;
+  /// Returns whether the Wrapper type and extern koka type string are same.
+  bool get sameWrapperAndExternType => sameExternAndFFIType;
 
-  /// Returns whether the dart type and FFI dart type string are same.
-  bool get sameDartAndFfiDartType => true;
+  /// Returns whether the Wrapper type and FFI koka type string are same.
+  bool get sameWrapperAndFFIType => true;
+
+  String convertFFITypeToExtern(Writer w, String value) => value;
+  String convertExternTypeToFFI(Writer w, String value) => value;
 
   /// Returns generated Dart code that converts the given value from its
   /// DartType to its FfiDartType.
   ///
   /// [value] is the value to be converted. If [objCRetain] is true, the ObjC
   /// object will be reained (ref count incremented) during conversion.
-  String convertDartTypeToFfiDartType(
+  String convertWrapperToFFIType(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -82,7 +86,7 @@ abstract class Type {
   /// conversion is occuring in the context of an ObjC class, then
   /// [objCEnclosingClass] should be the name of the Dart wrapper class (this is
   /// used by instancetype).
-  String convertFfiDartTypeToDartType(
+  String convertFFITypeToWrapper(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -141,19 +145,22 @@ abstract class BindingType extends NoLookUpBinding implements Type {
   bool get isIncompleteCompound => false;
 
   @override
-  String getFfiDartType(Writer w) => getCType(w);
+  String getRawCType(Writer w) => originalName;
 
   @override
-  String getDartType(Writer w) => getFfiDartType(w);
+  String getKokaFFIType(Writer w) => getKokaExternType(w);
 
   @override
-  bool get sameDartAndCType => sameFfiDartAndCType;
+  String getKokaWrapperType(Writer w) => getKokaFFIType(w);
 
   @override
-  bool get sameDartAndFfiDartType => true;
+  bool get sameWrapperAndExternType => sameExternAndFFIType;
 
   @override
-  String convertDartTypeToFfiDartType(
+  bool get sameWrapperAndFFIType => true;
+
+  @override
+  String convertWrapperToFFIType(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -163,7 +170,7 @@ abstract class BindingType extends NoLookUpBinding implements Type {
       value;
 
   @override
-  String convertFfiDartTypeToDartType(
+  String convertFFITypeToWrapper(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -173,6 +180,10 @@ abstract class BindingType extends NoLookUpBinding implements Type {
   }) =>
       value;
 
+  @override
+  String convertFFITypeToExtern(Writer w, String value) => value;
+  @override
+  String convertExternTypeToFFI(Writer w, String value) => value;
   @override
   String toString() => originalName;
 
@@ -193,5 +204,5 @@ class UnimplementedType extends Type {
   String toString() => '(Unimplemented: $reason)';
 
   @override
-  bool get sameFfiDartAndCType => true;
+  bool get sameExternAndFFIType => true;
 }

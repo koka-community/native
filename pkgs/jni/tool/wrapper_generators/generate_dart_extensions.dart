@@ -41,10 +41,10 @@ String getCheckedGetter(Type returnType) {
   const objectPointerGetter = 'objectPointer';
 
   if (returnType is PointerType) {
-    final child = returnType.child.getCType(dummyWriter);
+    final child = returnType.child.getKokaRawType(dummyWriter);
     return 'getPointer<$child>()';
   }
-  final cType = returnType.getCType(dummyWriter);
+  final cType = returnType.getKokaRawType(dummyWriter);
   if (cType.endsWith("ArrayPtr")) {
     return objectPointerGetter;
   }
@@ -89,15 +89,15 @@ String? getGlobalEnvExtensionFunction(Member field, Type? checkedReturnType) {
     params = params.sublist(1);
 
     final signature = params
-        .map((p) => '${p.type.getDartType(dummyWriter)} ${p.name}')
+        .map((p) => '${p.type.getKokaWrapperType(dummyWriter)} ${p.name}')
         .join(', ');
 
     final dartType =
         FunctionType(returnType: checkedReturnType!, parameters: params)
-            .getDartType(dummyWriter);
+            .getKokaWrapperType(dummyWriter);
     final callArgs = params.map((p) => p.name).join(', ');
     final checkedGetter = getCheckedGetter(returnType);
-    var returns = returnType.getDartType(dummyWriter);
+    var returns = returnType.getKokaWrapperType(dummyWriter);
     if (checkedGetter == 'boolean') {
       returns = 'bool';
     }
@@ -205,16 +205,16 @@ String? getFunctionPointerExtensionFunction(Member field,
     final visibleParams = implicitThis ? params.sublist(1) : params;
 
     final signature = visibleParams
-        .map((p) => '${p.type.getDartType(dummyWriter)} ${p.name}')
+        .map((p) => '${p.type.getKokaWrapperType(dummyWriter)} ${p.name}')
         .join(', ');
 
     final dartType = FunctionType(returnType: returnType, parameters: params)
-        .getDartType(dummyWriter);
+        .getKokaWrapperType(dummyWriter);
     final callArgs = [
       if (implicitThis) 'ptr',
       ...visibleParams.map((p) => p.name)
     ].join(', ');
-    final returns = returnType.getDartType(dummyWriter);
+    final returns = returnType.getKokaWrapperType(dummyWriter);
     final dereference = indirect ? 'value.ref' : 'ref';
     return '''
 late final _${field.name} =

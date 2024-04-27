@@ -31,25 +31,25 @@ class ObjCNullable extends Type {
   Type get baseType => child.baseType;
 
   @override
-  String getCType(Writer w) => child.getCType(w);
+  String getKokaExternType(Writer w) => child.getKokaExternType(w);
 
   @override
-  String getFfiDartType(Writer w) => child.getFfiDartType(w);
+  String getKokaFFIType(Writer w) => child.getKokaFFIType(w);
 
   @override
-  String getDartType(Writer w) => '${child.getDartType(w)}?';
+  String getKokaWrapperType(Writer w) => '${child.getKokaWrapperType(w)}?';
 
   @override
-  bool get sameFfiDartAndCType => child.sameFfiDartAndCType;
+  bool get sameExternAndFFIType => child.sameExternAndFFIType;
 
   @override
-  bool get sameDartAndCType => false;
+  bool get sameWrapperAndExternType => false;
 
   @override
-  bool get sameDartAndFfiDartType => false;
+  bool get sameWrapperAndFFIType => false;
 
   @override
-  String convertDartTypeToFfiDartType(
+  String convertWrapperToFFIType(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -59,7 +59,7 @@ class ObjCNullable extends Type {
     // This is a bit of a hack, but works for all the types that are allowed to
     // be a child type. If we add more allowed child types, we may have to start
     // special casing each type. Turns value._id into value?._id ?? nullptr.
-    final convertedValue = child.convertDartTypeToFfiDartType(
+    final convertedValue = child.convertWrapperToFFIType(
       w,
       '$value?',
       objCRetain: objCRetain,
@@ -70,7 +70,7 @@ class ObjCNullable extends Type {
   }
 
   @override
-  String convertFfiDartTypeToDartType(
+  String convertFFITypeToWrapper(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -79,7 +79,7 @@ class ObjCNullable extends Type {
     required UniqueNamer namer,
   }) {
     // All currently supported child types have a Pointer as their FfiDartType.
-    final convertedValue = child.convertFfiDartTypeToDartType(
+    final convertedValue = child.convertFFITypeToWrapper(
       w,
       value,
       objCRetain: objCRetain,

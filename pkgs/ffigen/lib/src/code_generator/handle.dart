@@ -13,13 +13,13 @@ class HandleType extends Type {
   factory HandleType() => _handle;
 
   @override
-  String getCType(Writer w) => '${w.ffiLibraryPrefix}.Handle';
+  String getKokaExternType(Writer w) => '${w.ffiLibraryPrefix}.Handle';
 
   @override
-  String getFfiDartType(Writer w) => 'Object';
+  String getKokaFFIType(Writer w) => 'Object';
 
   @override
-  bool get sameFfiDartAndCType => false;
+  bool get sameExternAndFFIType => false;
 
   @override
   String toString() => 'Handle';

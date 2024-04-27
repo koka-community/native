@@ -130,11 +130,13 @@ class Declaration {
             symbolAddressIncluder ?? Includer.excludeByDefault();
 
   /// Applies renaming and returns the result.
-  String renameUsingConfig(String name) => _renamer.rename(name);
+  String renameUsingConfig(String name) =>
+      _renamer.rename(name.toLowerCase().replaceAll('_', '-'));
 
   /// Applies member renaming and returns the result.
   String renameMemberUsingConfig(String declaration, String member) =>
-      _memberRenamer.rename(declaration, member);
+      _memberRenamer.rename(
+          declaration, member.toLowerCase().replaceAll('_', '-'));
 
   /// Checks if a name is allowed by a filter.
   bool shouldInclude(String name, bool excludeAllByDefault) =>

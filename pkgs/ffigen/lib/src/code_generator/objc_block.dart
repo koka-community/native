@@ -50,11 +50,11 @@ class ObjCBlock extends BindingType {
     }
 
     final isVoid = returnType == voidType;
-    final voidPtr = PointerType(voidType).getCType(w);
+    final voidPtr = PointerType(voidType).getKokaExternType(w);
     final blockPtr = PointerType(objCBlockType);
     final funcType = FunctionType(returnType: returnType, parameters: params);
     final natFnType = NativeFunc(funcType);
-    final natFnPtr = PointerType(natFnType).getCType(w);
+    final natFnPtr = PointerType(natFnType).getKokaExternType(w);
     final funcPtrTrampoline =
         w.topLevelUniqueNamer.makeUnique('_${name}_fnPtrTrampoline');
     final closureTrampoline =
@@ -68,28 +68,31 @@ class ObjCBlock extends BindingType {
     final trampFuncType = FunctionType(
         returnType: returnType,
         parameters: [Parameter(type: blockPtr, name: 'block'), ...params]);
-    final trampFuncCType = trampFuncType.getCType(w, writeArgumentNames: false);
+    final trampFuncCType =
+        trampFuncType.getKokaExternType(w, writeArgumentNames: false);
     final trampFuncFfiDartType =
-        trampFuncType.getFfiDartType(w, writeArgumentNames: false);
-    final natTrampFnType = NativeFunc(trampFuncType).getCType(w);
+        trampFuncType.getKokaFFIType(w, writeArgumentNames: false);
+    final natTrampFnType = NativeFunc(trampFuncType).getKokaExternType(w);
     final nativeCallableType =
         '${w.ffiLibraryPrefix}.NativeCallable<$trampFuncCType>';
-    final funcDartType = funcType.getDartType(w, writeArgumentNames: false);
+    final funcDartType =
+        funcType.getKokaWrapperType(w, writeArgumentNames: false);
     final funcFfiDartType =
-        funcType.getFfiDartType(w, writeArgumentNames: false);
-    final returnFfiDartType = returnType.getFfiDartType(w);
-    final blockCType = blockPtr.getCType(w);
+        funcType.getKokaFFIType(w, writeArgumentNames: false);
+    final returnFfiDartType = returnType.getKokaFFIType(w);
+    final blockCType = blockPtr.getKokaExternType(w);
 
     final paramsNameOnly = params.map((p) => p.name).join(', ');
     final paramsFfiDartType =
-        params.map((p) => '${p.type.getFfiDartType(w)} ${p.name}').join(', ');
-    final paramsDartType =
-        params.map((p) => '${p.type.getDartType(w)} ${p.name}').join(', ');
+        params.map((p) => '${p.type.getKokaFFIType(w)} ${p.name}').join(', ');
+    final paramsDartType = params
+        .map((p) => '${p.type.getKokaWrapperType(w)} ${p.name}')
+        .join(', ');
 
     // Write the function pointer based trampoline function.
     s.write('''
 $returnFfiDartType $funcPtrTrampoline($blockCType block, $paramsFfiDartType) =>
-    block.ref.target.cast<${natFnType.getFfiDartType(w)}>()
+    block.ref.target.cast<${natFnType.getKokaFFIType(w)}>()
         .asFunction<$funcFfiDartType>()($paramsNameOnly);
 ''');
 
@@ -113,12 +116,12 @@ $returnFfiDartType $closureTrampoline($blockCType block, $paramsFfiDartType) =>
     // Snippet that converts a Dart typed closure to FfiDart type. This snippet
     // is used below. Note that the closure being converted is called `fn`.
     final convertedFnArgs = params
-        .map((p) => p.type.convertFfiDartTypeToDartType(w, p.name,
+        .map((p) => p.type.convertFFITypeToWrapper(w, p.name,
             objCRetain: true,
             additionalStatements: StringBuffer(),
             namer: UniqueNamer({})))
         .join(', ');
-    final convFnInvocation = returnType.convertDartTypeToFfiDartType(
+    final convFnInvocation = returnType.convertWrapperToFFIType(
         w, 'fn($convertedFnArgs)',
         objCRetain: true,
         additionalStatements: StringBuffer(),
@@ -190,9 +193,9 @@ class $name extends ${ObjCBuiltInFunctions.blockBase.gen(w)} {
     }
 
     // Call method.
-    s.write('  ${returnType.getDartType(w)} call($paramsDartType) =>');
+    s.write('  ${returnType.getKokaWrapperType(w)} call($paramsDartType) =>');
     final callMethodArgs = params
-        .map((p) => p.type.convertDartTypeToFfiDartType(w, p.name,
+        .map((p) => p.type.convertWrapperToFFIType(w, p.name,
             objCRetain: false,
             additionalStatements: StringBuffer(),
             namer: UniqueNamer({})))
@@ -200,7 +203,7 @@ class $name extends ${ObjCBuiltInFunctions.blockBase.gen(w)} {
     final callMethodInvocation = '''
 pointer.ref.invoke.cast<$natTrampFnType>().asFunction<$trampFuncFfiDartType>()(
     pointer, $callMethodArgs)''';
-    s.write(returnType.convertFfiDartTypeToDartType(w, callMethodInvocation,
+    s.write(returnType.convertFFITypeToWrapper(w, callMethodInvocation,
         objCRetain: false,
         additionalStatements: StringBuffer(),
         namer: UniqueNamer({})));
@@ -223,22 +226,23 @@ pointer.ref.invoke.cast<$natTrampFnType>().asFunction<$trampFuncFfiDartType>()(
   }
 
   @override
-  String getCType(Writer w) => PointerType(objCBlockType).getCType(w);
+  String getKokaExternType(Writer w) =>
+      PointerType(objCBlockType).getKokaExternType(w);
 
   @override
-  String getDartType(Writer w) => name;
+  String getKokaWrapperType(Writer w) => name;
 
   @override
-  bool get sameFfiDartAndCType => true;
+  bool get sameExternAndFFIType => true;
 
   @override
-  bool get sameDartAndCType => false;
+  bool get sameWrapperAndExternType => false;
 
   @override
-  bool get sameDartAndFfiDartType => false;
+  bool get sameWrapperAndFFIType => false;
 
   @override
-  String convertDartTypeToFfiDartType(
+  String convertWrapperToFFIType(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -248,7 +252,7 @@ pointer.ref.invoke.cast<$natTrampFnType>().asFunction<$trampFuncFfiDartType>()(
       ObjCInterface.generateGetId(value, objCRetain);
 
   @override
-  String convertFfiDartTypeToDartType(
+  String convertFFITypeToWrapper(
     Writer w,
     String value, {
     required bool objCRetain,

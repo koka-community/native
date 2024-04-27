@@ -50,7 +50,7 @@ class EnumClass extends BindingType {
     final localUniqueNamer = UniqueNamer({enclosingClassName});
 
     // Print enclosing class.
-    final typeName = enclosingClassName.toLowerCase();
+    final typeName = enclosingClassName;
     s.writeln('type ${typeName}');
     const indent = '  ';
     final names = {
@@ -93,16 +93,16 @@ class EnumClass extends BindingType {
   }
 
   @override
-  String getCType(Writer w) => nativeType.getCType(w);
+  String getKokaExternType(Writer w) => nativeType.getKokaExternType(w);
 
   @override
-  String getFfiDartType(Writer w) => nativeType.getFfiDartType(w);
+  String getKokaFFIType(Writer w) => nativeType.getKokaFFIType(w);
 
   @override
-  bool get sameFfiDartAndCType => nativeType.sameFfiDartAndCType;
+  bool get sameExternAndFFIType => nativeType.sameExternAndFFIType;
 
   @override
-  bool get sameDartAndCType => nativeType.sameDartAndCType;
+  bool get sameWrapperAndExternType => nativeType.sameWrapperAndExternType;
 
   @override
   String? getDefaultValue(Writer w) => '0';

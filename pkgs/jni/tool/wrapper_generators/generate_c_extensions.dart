@@ -66,7 +66,7 @@ String getCType(Type type) {
   if (type is PointerType) {
     return '${getCType(type.child)}*';
   }
-  final cType = type.getCType(dummyWriter);
+  final cType = type.getKokaRawType(dummyWriter);
   const specialCaseMappings = {
     'JNIEnv1': 'JNIEnv',
     'ffi.Char': 'char',

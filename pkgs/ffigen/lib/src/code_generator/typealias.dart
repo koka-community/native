@@ -23,7 +23,7 @@ class Typealias extends BindingType {
   /// Creates a Typealias.
   ///
   /// If [genFfiDartType] is true, a binding is generated for the Ffi Dart type
-  /// in addition to the C type. See [Type.getFfiDartType].
+  /// in addition to the C type. See [Type.getKokaFFIType].
   factory Typealias({
     String? usr,
     String? originalName,
@@ -76,16 +76,11 @@ class Typealias extends BindingType {
   })  : _ffiDartAliasName = genFfiDartType ? 'koka-$name' : null,
         _dartAliasName = (!genFfiDartType &&
                 type is! Typealias &&
-                !type.sameDartAndFfiDartType)
+                !type.sameWrapperAndFFIType)
             ? 'koka-$name'
             : null,
         super(
-          name: genFfiDartType
-              ? 'native-$name'
-              : name
-                  .toLowerCase()
-                  .replaceAll('_', '-')
-                  .replaceAll('s::s', 's::S'),
+          name: genFfiDartType ? 'native-$name' : name,
         );
 
   @override
@@ -116,12 +111,12 @@ class Typealias extends BindingType {
     if (dartDoc != null) {
       sb.write(makeDoc(dartDoc!));
     }
-    sb.write('alias $name = ${type.getFfiDartType(w)}\n');
+    sb.write('alias $name = ${type.getKokaFFIType(w)}\n');
     if (_ffiDartAliasName != null) {
       // sb.write('alias $_ffiDartAliasName = ${type.getFfiDartType(w)}\n');
     }
     if (_dartAliasName != null) {
-      sb.write('alias $_dartAliasName = ${type.getDartType(w)}\n');
+      sb.write('alias $_dartAliasName = ${type.getKokaWrapperType(w)}\n');
     }
     return BindingString(
         type: BindingStringType.typeDef, string: sb.toString());
@@ -133,53 +128,55 @@ class Typealias extends BindingType {
   @override
   bool get isIncompleteCompound => type.isIncompleteCompound;
 
-  @override
   String getCType(Writer w) => originalName;
 
   @override
-  String getFfiDartType(Writer w) {
-    if (type.sameFfiDartAndCType) {
+  String getKokaExternType(Writer w) => type.getKokaExternType(w);
+
+  @override
+  String getKokaFFIType(Writer w) {
+    if (type.sameExternAndFFIType) {
       return name;
     } else {
-      return type.getFfiDartType(w);
+      return type.getKokaFFIType(w);
     }
   }
 
   @override
-  String getDartType(Writer w) {
+  String getKokaWrapperType(Writer w) {
     if (_dartAliasName != null) {
       return _dartAliasName!;
-    } else if (type.sameDartAndCType) {
-      return getFfiDartType(w);
+    } else if (type.sameWrapperAndExternType) {
+      return getKokaFFIType(w);
     } else {
-      return type.getDartType(w);
+      return type.getKokaWrapperType(w);
     }
   }
 
   @override
-  bool get sameFfiDartAndCType => type.sameFfiDartAndCType;
+  bool get sameExternAndFFIType => type.sameExternAndFFIType;
 
   @override
-  bool get sameDartAndCType => type.sameDartAndCType;
+  bool get sameWrapperAndExternType => type.sameWrapperAndExternType;
 
   @override
-  bool get sameDartAndFfiDartType => type.sameDartAndFfiDartType;
+  bool get sameWrapperAndFFIType => type.sameWrapperAndFFIType;
 
   @override
-  String convertDartTypeToFfiDartType(
+  String convertWrapperToFFIType(
     Writer w,
     String value, {
     required bool objCRetain,
     required StringBuffer additionalStatements,
     required UniqueNamer namer,
   }) =>
-      type.convertDartTypeToFfiDartType(w, value,
+      type.convertWrapperToFFIType(w, value,
           objCRetain: objCRetain,
           additionalStatements: additionalStatements,
           namer: namer);
 
   @override
-  String convertFfiDartTypeToDartType(
+  String convertFFITypeToWrapper(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -187,7 +184,7 @@ class Typealias extends BindingType {
     required StringBuffer additionalStatements,
     required UniqueNamer namer,
   }) =>
-      type.convertFfiDartTypeToDartType(w, value,
+      type.convertFFITypeToWrapper(w, value,
           objCRetain: objCRetain,
           objCEnclosingClass: objCEnclosingClass,
           additionalStatements: additionalStatements,
@@ -221,7 +218,7 @@ class ObjCInstanceType extends Typealias {
   }) : super._();
 
   @override
-  String convertDartTypeToFfiDartType(
+  String convertWrapperToFFIType(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -232,7 +229,7 @@ class ObjCInstanceType extends Typealias {
       ObjCInterface.generateGetId(value, objCRetain);
 
   @override
-  String convertFfiDartTypeToDartType(
+  String convertFFITypeToWrapper(
     Writer w,
     String value, {
     required bool objCRetain,

@@ -59,26 +59,28 @@ class NativeType extends Type {
       this._cType, this._ffiType, this._dartType, this._defaultValue);
   factory NativeType(SupportedNativeType type) => _primitives[type]!;
 
-  @override
-  String getCType(Writer w) => _cType;
+  String getRawCType(Writer w) => _cType;
 
   @override
-  String getFfiDartType(Writer w) => _ffiType;
+  String getKokaExternType(Writer w) => _ffiType;
 
   @override
-  String getDartType(Writer w) => _dartType;
+  String getKokaFFIType(Writer w) => _ffiType;
 
   @override
-  bool get sameFfiDartAndCType => _cType == _ffiType;
+  String getKokaWrapperType(Writer w) => _dartType;
 
   @override
-  bool get sameDartAndCType => _cType == _dartType;
+  bool get sameExternAndFFIType => _cType == _ffiType;
 
   @override
-  bool get sameDartAndFfiDartType => _dartType == _ffiType;
+  bool get sameWrapperAndExternType => _cType == _dartType;
 
   @override
-  String convertFfiDartTypeToDartType(
+  bool get sameWrapperAndFFIType => _dartType == _ffiType;
+
+  @override
+  String convertFFITypeToWrapper(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -86,17 +88,17 @@ class NativeType extends Type {
     required StringBuffer additionalStatements,
     required UniqueNamer namer,
   }) =>
-      sameDartAndFfiDartType ? value : '$value.$_dartType';
+      sameWrapperAndFFIType ? value : '$value.$_dartType';
 
   @override
-  String convertDartTypeToFfiDartType(
+  String convertWrapperToFFIType(
     Writer w,
     String value, {
     required bool objCRetain,
     required StringBuffer additionalStatements,
     required UniqueNamer namer,
   }) =>
-      sameDartAndFfiDartType ? value : '$value.$_ffiType';
+      sameWrapperAndFFIType ? value : '$value.$_ffiType';
 
   @override
   String toString() => _cType;

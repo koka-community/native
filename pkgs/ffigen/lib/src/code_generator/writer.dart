@@ -138,7 +138,7 @@ class Writer {
       name: className,
       makeUnique: allLevelsUniqueNamer,
       markUsed: [_initialWrapperLevelUniqueNamer, _initialTopLevelUniqueNamer],
-    ).toLowerCase();
+    );
 
     /// Library imports prefix should be unique unique among all names.
     if (additionalImports != null) {
@@ -254,7 +254,7 @@ class Writer {
         "import std/num/int32\n"
         "import std/num/int64\n"
         "import std/num/float64\n");
-    // result.writeln("module ${className.toLowerCase()}");
+    // result.writeln("module ${className}");
     // result.writeln();
     if (ffiNativeBindings.isNotEmpty && nativeAssetId != null) {
       s.writeln("extern import");

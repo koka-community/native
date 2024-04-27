@@ -45,7 +45,7 @@ class Constant extends NoLookUpBinding {
       s.writeln(makeDoc(dartDoc!));
     }
 
-    s.writeln('pub val k${constantName.toLowerCase()}: $rawType = $rawValue\n');
+    s.writeln('pub val k$constantName: $rawType = $rawValue\n');
 
     return BindingString(
         type: BindingStringType.constant, string: s.toString());

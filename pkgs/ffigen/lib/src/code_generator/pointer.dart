@@ -28,58 +28,52 @@ class PointerType extends Type {
   @override
   Type get baseType => child.baseType;
 
-  @override
-  String getCType(Writer w) => '${child.getCType(w)}*';
+  String getRawCType(Writer w) => '${child.getRawCType(w)}*';
 
   @override
-  String getFfiDartType(Writer w) => 'intptr_t';
+  String getKokaExternType(Writer w) => 'intptr_t';
 
   @override
-  String getDartType(Writer w) => baseType is NativeFunc
-      ? 'intptr_t'
-      : 'owned-c<${child.getFfiDartType(w)}>';
+  String getKokaFFIType(Writer w) => 'c-pointer<${child.getKokaFFIType(w)}>';
+
+  @override
+  String getKokaWrapperType(Writer w) =>
+      'c-pointer<${child.getKokaFFIType(w)}>';
 
   // Both the C type and the FFI Dart type are 'Pointer<$cType>'.
   @override
-  bool get sameFfiDartAndCType => false;
+  bool get sameExternAndFFIType => false;
 
   @override
-  bool get sameDartAndCType => false;
+  bool get sameWrapperAndExternType => false;
 
   @override
-  bool get sameDartAndFfiDartType => baseType is NativeFunc;
+  bool get sameWrapperAndFFIType => true;
 
   @override
   String toString() => '$child*';
 
   @override
   String cacheKey() => '${child.cacheKey()}*';
+
   @override
-  String convertDartTypeToFfiDartType(
+  String convertWrapperToFFIType(
     Writer w,
     String value, {
     required bool objCRetain,
     required StringBuffer additionalStatements,
     required UniqueNamer namer,
   }) {
-    if (baseType is NativeFunc) {
-      return value;
-    }
-    final ptr = namer.makeUnique('koka-ptr');
-    additionalStatements.write('with $ptr <- $value.with-ptr\n  ');
-    return ptr;
+    return '$value.ptr';
   }
 
   @override
-  String convertFfiDartTypeToDartType(Writer w, String value,
+  String convertFFITypeToWrapper(Writer w, String value,
       {required bool objCRetain,
       String? objCEnclosingClass,
       required StringBuffer additionalStatements,
       required UniqueNamer namer}) {
-    if (baseType is NativeFunc) {
-      return value;
-    }
-    return '$value.c-own';
+    return 'C-pointer($value)';
   }
 
   @override
@@ -90,19 +84,20 @@ class BorrowedPointerType extends PointerType {
   BorrowedPointerType(Type child) : super._(child);
 
   @override
-  String getDartType(Writer w) => 'borrowed-c<s,${child.getFfiDartType(w)}>';
+  String getKokaWrapperType(Writer w) =>
+      'borrowed-c<s,${child.getKokaFFIType(w)}>';
 
   @override
-  String getCType(Writer w) => '${child.getCType(w)}*';
+  String getKokaExternType(Writer w) => '${child.getKokaExternType(w)}*';
 
   @override
-  String getFfiDartType(Writer w) => 'intptr_t';
+  String getKokaFFIType(Writer w) => 'intptr_t';
 
   @override
   String toString() => 'borrowed ${child}*';
 
   @override
-  String convertFfiDartTypeToDartType(Writer w, String value,
+  String convertFFITypeToWrapper(Writer w, String value,
       {required bool objCRetain,
       String? objCEnclosingClass,
       required StringBuffer additionalStatements,
@@ -112,6 +107,34 @@ class BorrowedPointerType extends PointerType {
 
   @override
   String cacheKey() => 'borrowed ${child.cacheKey()}';
+}
+
+class OwnedPointerType extends PointerType {
+  OwnedPointerType(Type child) : super._(child);
+
+  @override
+  String getKokaWrapperType(Writer w) => 'owned-c<${child.getKokaFFIType(w)}>';
+
+  @override
+  String getKokaExternType(Writer w) => '${child.getKokaExternType(w)}*';
+
+  @override
+  String getKokaFFIType(Writer w) => 'intptr_t';
+
+  @override
+  String toString() => 'owned ${child}*';
+
+  @override
+  String convertFFITypeToWrapper(Writer w, String value,
+      {required bool objCRetain,
+      String? objCEnclosingClass,
+      required StringBuffer additionalStatements,
+      required UniqueNamer namer}) {
+    return '$value.c-own';
+  }
+
+  @override
+  String cacheKey() => 'owned ${child.cacheKey()}';
 }
 
 /// Represents a constant array, which has a fixed size.
@@ -135,7 +158,9 @@ class ConstantArray extends PointerType {
   String cacheKey() => '${child.cacheKey()}[$length]';
 
   @override
-  String getDartType(Writer w) => 'owned-c<c-array<${child.getDartType(w)}>>';
+  String getKokaFFIType(Writer w) => 'c-array<${child.getKokaFFIType(w)}>';
+  @override
+  String getKokaWrapperType(Writer w) => 'c-array<${child.getKokaFFIType(w)}>';
 }
 
 /// Represents an incomplete array, which has an unknown size.
@@ -152,7 +177,9 @@ class IncompleteArray extends PointerType {
   String cacheKey() => '${child.cacheKey()}[]';
 
   @override
-  String getDartType(Writer w) => 'owned-c<c-array<${child.getDartType(w)}>>';
+  String getKokaFFIType(Writer w) => 'c-array<${child.getKokaFFIType(w)}>';
+  @override
+  String getKokaWrapperType(Writer w) => 'c-array<${child.getKokaFFIType(w)}>';
 }
 
 /// A pointer to an NSObject.
@@ -163,18 +190,18 @@ class ObjCObjectPointer extends PointerType {
   ObjCObjectPointer._() : super._(objCObjectType);
 
   @override
-  String getDartType(Writer w) => w.generateForPackageObjectiveC
+  String getKokaWrapperType(Writer w) => w.generateForPackageObjectiveC
       ? 'NSObject'
       : '${w.objcPkgPrefix}.NSObject';
 
   @override
-  bool get sameDartAndCType => false;
+  bool get sameWrapperAndExternType => false;
 
   @override
-  bool get sameDartAndFfiDartType => false;
+  bool get sameWrapperAndFFIType => false;
 
   @override
-  String convertDartTypeToFfiDartType(
+  String convertWrapperToFFIType(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -184,7 +211,7 @@ class ObjCObjectPointer extends PointerType {
       ObjCInterface.generateGetId(value, objCRetain);
 
   @override
-  String convertFfiDartTypeToDartType(
+  String convertFFITypeToWrapper(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -192,5 +219,6 @@ class ObjCObjectPointer extends PointerType {
     required StringBuffer additionalStatements,
     required UniqueNamer namer,
   }) =>
-      ObjCInterface.generateConstructor(getDartType(w), value, objCRetain);
+      ObjCInterface.generateConstructor(
+          getKokaWrapperType(w), value, objCRetain);
 }

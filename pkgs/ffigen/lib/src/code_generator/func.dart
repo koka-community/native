@@ -113,20 +113,20 @@ class Func extends LookUpBinding {
       p.name = paramNamer.makeUnique(p.name);
     }
 
-    final cType = _exposedFunctionTypealias?.getCType(w) ??
-        functionType.getCType(w, writeArgumentNames: false);
+    final cType = _exposedFunctionTypealias?.getKokaExternType(w) ??
+        functionType.getKokaExternType(w, writeArgumentNames: false);
     // final dartType = _exposedFunctionTypealias?.getFfiDartType(w) ??
     //     functionType.getFfiDartType(w, writeArgumentNames: false);
-    final needsWrapper = !functionType.sameDartAndFfiDartType && !isInternal;
+    final needsWrapper = !functionType.sameWrapperAndFFIType && !isInternal;
     // print("Needs wrapper $needsWrapper");
     final funcVarName =
         'external/$enclosingFuncName'; // w.wrapperLevelUniqueNamer.makeUnique('_$name');
-    final ffiReturnType = functionType.returnType.getFfiDartType(w);
-    final ffiArgDeclString = functionType.dartTypeParameters
-        .map((p) => '^${p.name}: ${p.type.getFfiDartType(w)}')
+    final externReturnType = functionType.returnType.getKokaExternType(w);
+    final externArgDeclString = functionType.dartTypeParameters
+        .map((p) => '^${p.name}: ${p.type.getKokaExternType(w)}')
         .join(', ');
     final ffiArgs = functionType.dartTypeParameters
-        .mapIndexed((i, p) => '(${p.type.getCType(w)})#${i + 1}')
+        .mapIndexed((i, p) => '(${p.type.getRawCType(w)})#${i + 1}')
         .join(', ');
     late final String dartReturnType;
     late final String dartArgDeclString;
@@ -134,23 +134,23 @@ class Func extends LookUpBinding {
     late final String funcImplCall;
     final strBuff = StringBuffer();
     if (needsWrapper) {
-      dartReturnType = functionType.returnType.getDartType(w);
+      dartReturnType = functionType.returnType.getKokaWrapperType(w);
       dartArgDeclString = functionType.dartTypeParameters
-          .map((p) => '^${p.name}: ${p.type.getDartType(w)}')
+          .map((p) => '^${p.name}: ${p.type.getKokaWrapperType(w)}')
           .join(', ');
       final namer = UniqueNamer({});
       final argString = functionType.dartTypeParameters
-          .map((p) => p.type.convertDartTypeToFfiDartType(w, p.name,
+          .map((p) => p.type.convertWrapperToFFIType(w, p.name,
               objCRetain: false, additionalStatements: strBuff, namer: namer))
           .join(', ');
-      funcImplCall = functionType.returnType.convertFfiDartTypeToDartType(
+      funcImplCall = functionType.returnType.convertFFITypeToWrapper(
           w, '$funcVarName($argString)',
           objCRetain: !objCReturnsRetained,
           additionalStatements: strBuff,
           namer: namer);
     } else {
-      dartReturnType = ffiReturnType;
-      dartArgDeclString = ffiArgDeclString;
+      dartReturnType = externReturnType;
+      dartArgDeclString = externArgDeclString;
       final argString =
           functionType.dartTypeParameters.map((p) => '${p.name},\n').join('');
       funcImplCall = '$funcVarName($argString)';
@@ -168,7 +168,7 @@ class Func extends LookUpBinding {
 //       )}
 
       s.writeln(
-          '''pub extern external/$nativeFuncName($ffiArgDeclString): $ffiReturnType
+          '''pub extern external/$nativeFuncName($externArgDeclString): $externReturnType
   c inline "$originalName($ffiArgs)"\n''');
       if (needsWrapper) {
         // print(

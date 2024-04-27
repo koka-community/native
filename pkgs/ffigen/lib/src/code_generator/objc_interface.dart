@@ -81,14 +81,14 @@ class ObjCInterface extends BindingType {
 
     final uniqueNamer = UniqueNamer({name, 'pointer'});
 
-    final rawObjType = PointerType(objCObjectType).getCType(w);
+    final rawObjType = PointerType(objCObjectType).getKokaExternType(w);
     final wrapObjType = ObjCBuiltInFunctions.objectBase.gen(w);
 
     final superTypeIsInPkgObjc = superType == null;
 
     // Class declaration.
     s.write('''
-class $name extends ${superType?.getDartType(w) ?? wrapObjType} {
+class $name extends ${superType?.getKokaWrapperType(w) ?? wrapObjType} {
   $name._($rawObjType pointer,
       {bool retain = false, bool release = false}) :
           ${superTypeIsInPkgObjc ? 'super' : 'super.castFromPointer'}
@@ -199,14 +199,14 @@ class $name extends ${superType?.getDartType(w) ?? wrapObjType} {
           w,
           isStatic ? _classObject.name : 'this.pointer',
           m.selObject!.name,
-          m.params.map((p) => p.type.convertDartTypeToFfiDartType(w, p.name,
+          m.params.map((p) => p.type.convertWrapperToFFIType(w, p.name,
               objCRetain: false,
               additionalStatements: StringBuffer(),
               namer: UniqueNamer({}))),
           structRetPtr: 'stret'));
       s.write(';\n');
       if (convertReturn) {
-        final result = returnType.convertFfiDartTypeToDartType(w, '_ret',
+        final result = returnType.convertFFITypeToWrapper(w, '_ret',
             objCRetain: !m.isOwnedReturn,
             objCEnclosingClass: name,
             additionalStatements: StringBuffer(),
@@ -329,23 +329,24 @@ class $name extends ${superType?.getDartType(w) ?? wrapObjType} {
   }
 
   @override
-  String getCType(Writer w) => PointerType(objCObjectType).getCType(w);
+  String getKokaExternType(Writer w) =>
+      PointerType(objCObjectType).getKokaExternType(w);
 
   @override
-  String getDartType(Writer w) =>
+  String getKokaWrapperType(Writer w) =>
       _isBuiltIn ? '${w.objcPkgPrefix}.$name' : name;
 
   @override
-  bool get sameFfiDartAndCType => true;
+  bool get sameExternAndFFIType => true;
 
   @override
-  bool get sameDartAndCType => false;
+  bool get sameWrapperAndExternType => false;
 
   @override
-  bool get sameDartAndFfiDartType => false;
+  bool get sameWrapperAndFFIType => false;
 
   @override
-  String convertDartTypeToFfiDartType(
+  String convertWrapperToFFIType(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -358,7 +359,7 @@ class $name extends ${superType?.getDartType(w) ?? wrapObjType} {
       objCRetain ? '$value.retainAndReturnPointer()' : '$value.pointer';
 
   @override
-  String convertFfiDartTypeToDartType(
+  String convertFFITypeToWrapper(
     Writer w,
     String value, {
     required bool objCRetain,
@@ -366,7 +367,8 @@ class $name extends ${superType?.getDartType(w) ?? wrapObjType} {
     required StringBuffer additionalStatements,
     required UniqueNamer namer,
   }) =>
-      ObjCInterface.generateConstructor(getDartType(w), value, objCRetain);
+      ObjCInterface.generateConstructor(
+          getKokaWrapperType(w), value, objCRetain);
 
   static String generateConstructor(
     String className,
@@ -394,7 +396,7 @@ class $name extends ${superType?.getDartType(w) ?? wrapObjType} {
     if (baseType is ObjCNullable && baseType.child is ObjCInstanceType) {
       return '$enclosingClass?';
     }
-    return type.getDartType(w);
+    return type.getKokaWrapperType(w);
   }
 }
 

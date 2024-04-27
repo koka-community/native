@@ -56,32 +56,32 @@ class FunctionType extends Type {
   }
 
   @override
-  String getCType(Writer w, {bool writeArgumentNames = true}) =>
-      _getTypeImpl(writeArgumentNames, (Type t) => t.getCType(w),
+  String getKokaExternType(Writer w, {bool writeArgumentNames = true}) =>
+      _getTypeImpl(writeArgumentNames, (Type t) => t.getKokaExternType(w),
           varArgWrapper: '${w.ffiLibraryPrefix}.VarArgs');
 
   @override
-  String getFfiDartType(Writer w, {bool writeArgumentNames = true}) =>
-      _getTypeImpl(writeArgumentNames, (Type t) => t.getFfiDartType(w));
+  String getKokaFFIType(Writer w, {bool writeArgumentNames = true}) =>
+      _getTypeImpl(writeArgumentNames, (Type t) => t.getKokaFFIType(w));
 
   @override
-  String getDartType(Writer w, {bool writeArgumentNames = true}) =>
-      _getTypeImpl(writeArgumentNames, (Type t) => t.getDartType(w));
+  String getKokaWrapperType(Writer w, {bool writeArgumentNames = true}) =>
+      _getTypeImpl(writeArgumentNames, (Type t) => t.getKokaWrapperType(w));
 
   @override
-  bool get sameFfiDartAndCType =>
-      returnType.sameFfiDartAndCType &&
-      dartTypeParameters.every((p) => p.type.sameFfiDartAndCType);
+  bool get sameExternAndFFIType =>
+      returnType.sameExternAndFFIType &&
+      dartTypeParameters.every((p) => p.type.sameExternAndFFIType);
 
   @override
-  bool get sameDartAndCType =>
-      returnType.sameDartAndCType &&
-      dartTypeParameters.every((p) => p.type.sameDartAndCType);
+  bool get sameWrapperAndExternType =>
+      returnType.sameWrapperAndExternType &&
+      dartTypeParameters.every((p) => p.type.sameWrapperAndExternType);
 
   @override
-  bool get sameDartAndFfiDartType =>
-      returnType.sameDartAndFfiDartType &&
-      dartTypeParameters.every((p) => p.type.sameDartAndFfiDartType);
+  bool get sameWrapperAndFFIType =>
+      returnType.sameWrapperAndFFIType &&
+      dartTypeParameters.every((p) => p.type.sameWrapperAndFFIType);
 
   @override
   String toString() => _getTypeImpl(false, (Type t) => t.toString());
@@ -135,22 +135,22 @@ class NativeFunc extends Type {
   }
 
   @override
-  String getCType(Writer w) => 'intptr_t';
+  String getKokaExternType(Writer w) => 'intptr_t';
 
   @override
-  String getFfiDartType(Writer w) => 'intptr_t';
+  String getKokaFFIType(Writer w) => 'intptr_t';
 
   @override
-  String getDartType(Writer w) => 'intptr_t';
+  String getKokaWrapperType(Writer w) => 'intptr_t';
 
   @override
-  bool get sameFfiDartAndCType => true;
+  bool get sameExternAndFFIType => true;
 
   @override
-  bool get sameDartAndCType => true;
+  bool get sameWrapperAndExternType => true;
 
   @override
-  bool get sameDartAndFfiDartType => true;
+  bool get sameWrapperAndFFIType => true;
 
   @override
   String toString() => '${_type.toString()}';

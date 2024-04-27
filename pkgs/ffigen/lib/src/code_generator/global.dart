@@ -49,9 +49,9 @@ class Global extends LookUpBinding {
     if (dartDoc != null) {
       s.write(makeDoc(dartDoc!));
     }
-    final kokaType = type.getDartType(w);
-    final kokaFfiType = type.getFfiDartType(w);
-    final cType = type.getCType(w);
+    final kokaType = type.getKokaWrapperType(w);
+    final kokaFfiType = type.getKokaFFIType(w);
+    final cType = type.getKokaExternType(w);
     if (type is Compound) {
       _logger.warning(
           'Global has compound value type which is not supported yet.');
@@ -67,16 +67,14 @@ class Global extends LookUpBinding {
           '  c inline "$name"\n');
       if (constant) {
         final namer = UniqueNamer({});
-        final ret = type.convertFfiDartTypeToDartType(
-            w, 'external/$globalVarName()',
+        final ret = type.convertFFITypeToWrapper(w, 'external/$globalVarName()',
             objCRetain: false, additionalStatements: s, namer: namer);
 
         s.writeln('pub val wrapper/$globalVarName: $kokaType = $ret\n');
       } else {
         final namer = UniqueNamer({});
         s.writeln('pub fun wrapper/$globalVarName(): $kokaType');
-        final ret = type.convertFfiDartTypeToDartType(
-            w, 'external/$globalVarName()',
+        final ret = type.convertFFITypeToWrapper(w, 'external/$globalVarName()',
             objCRetain: true, additionalStatements: s, namer: namer);
         s.writeln('  $ret\n');
       }

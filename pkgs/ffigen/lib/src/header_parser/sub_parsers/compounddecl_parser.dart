@@ -130,7 +130,7 @@ Compound? parseCompoundDeclaration(
       // must be generated.
       return Compound.fromType(
         type: compoundType,
-        name: incrementalNamer.name('Unnamed$className'),
+        name: incrementalNamer.name('unnamed-$className'),
         usr: declUsr,
         dartDoc: getCursorDocComment(cursor),
       );
