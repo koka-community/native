@@ -28,7 +28,17 @@ class PointerType extends Type {
   @override
   Type get baseType => child.baseType;
 
-  String getRawCType(Writer w) => '${child.getRawCType(w)}*';
+  @override
+  String getRawCType(Writer w) {
+    if (child is NativeFunc) {
+      return child.getRawCType(w);
+    }
+    if (child.getRawCType(w) == 'intptr_t') {
+      return 'intptr_t';
+    } else {
+      return '${child.getRawCType(w)}*';
+    }
+  }
 
   @override
   String getKokaExternType(Writer w) => 'intptr_t';
@@ -68,11 +78,21 @@ class PointerType extends Type {
   }
 
   @override
+  String convertFFITypeToExtern(Writer w, String value) {
+    return '$value.ptr';
+  }
+
+  @override
   String convertFFITypeToWrapper(Writer w, String value,
       {required bool objCRetain,
       String? objCEnclosingClass,
       required StringBuffer additionalStatements,
       required UniqueNamer namer}) {
+    return 'C-pointer($value)';
+  }
+
+  @override
+  String convertExternTypeToFFI(Writer w, String value) {
     return 'C-pointer($value)';
   }
 

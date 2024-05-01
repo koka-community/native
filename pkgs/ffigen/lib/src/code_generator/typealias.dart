@@ -131,6 +131,9 @@ class Typealias extends BindingType {
   String getCType(Writer w) => originalName;
 
   @override
+  String getRawCType(Writer w) => type.getRawCType(w);
+
+  @override
   String getKokaExternType(Writer w) => type.getKokaExternType(w);
 
   @override
@@ -174,6 +177,14 @@ class Typealias extends BindingType {
           objCRetain: objCRetain,
           additionalStatements: additionalStatements,
           namer: namer);
+
+  @override
+  String convertExternTypeToFFI(Writer w, String value) =>
+      type.convertExternTypeToFFI(w, value);
+
+  @override
+  String convertFFITypeToExtern(Writer w, String value) =>
+      type.convertFFITypeToExtern(w, value);
 
   @override
   String convertFFITypeToWrapper(

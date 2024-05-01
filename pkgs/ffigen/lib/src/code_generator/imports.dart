@@ -95,7 +95,7 @@ final objcPkgImport = LibraryImport(
     importPathWhenImportedByPackageObjC: '../objective_c.dart');
 final self = LibraryImport('self', '');
 
-final voidType = NativeType.other('kk_unit_t', '()', '()', '()');
+final voidType = NativeType.other('void', '()', '()', '()');
 
 final unsignedCharType = NativeType.other('unsigned char', 'int8', 'int', '0');
 final signedCharType = NativeType.other('char', 'int8', 'int', '0');

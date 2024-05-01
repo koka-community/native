@@ -117,7 +117,7 @@ class Func extends LookUpBinding {
         functionType.getKokaExternType(w, writeArgumentNames: false);
     // final dartType = _exposedFunctionTypealias?.getFfiDartType(w) ??
     //     functionType.getFfiDartType(w, writeArgumentNames: false);
-    final needsWrapper = !functionType.sameWrapperAndFFIType && !isInternal;
+    final needsWrapper = !functionType.sameExternAndFFIType && !isInternal;
     // print("Needs wrapper $needsWrapper");
     final funcVarName =
         'external/$enclosingFuncName'; // w.wrapperLevelUniqueNamer.makeUnique('_$name');
@@ -169,7 +169,7 @@ class Func extends LookUpBinding {
 
       s.writeln(
           '''pub extern external/$nativeFuncName($externArgDeclString): $externReturnType
-  c inline "$originalName($ffiArgs)"\n''');
+  c inline "(${functionType.returnType.isPointerType ? 'intptr_t' : functionType.returnType.getRawCType(w)})$originalName($ffiArgs)"\n''');
       if (needsWrapper) {
         // print(
         //     "Wrapper ${nativeFuncName} ${functionType.parameters.map((e) => e.type.runtimeType)} ${functionType.returnType}");

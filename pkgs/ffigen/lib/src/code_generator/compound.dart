@@ -189,13 +189,13 @@ abstract class Compound extends BindingType {
           continue;
         }
         s.writeln(
-            'pub inline extern $kokaName-ptrraw/$mKokaName(s: intptr_t): ${m.type.getKokaFFIType(w)}\n'
-            '  c inline "(${m.type.isPointerType ? 'intptr_t' : m.type.getKokaExternType(w)})((($cfulltype*)#1)->${m.originalName})"');
+            'pub inline extern $kokaName-ptrraw/$mKokaName(s: intptr_t): ${m.type.getKokaExternType(w)}\n'
+            '  c inline "(${m.type.isPointerType ? 'intptr_t' : m.type.getRawCType(w)})((($cfulltype*)#1)->${m.originalName})"');
         s.writeln();
 
         s.writeln(
             'pub inline fun ${kokaName}p/$mKokaName(s: $kokaPointerName): ${m.type.getKokaFFIType(w)}\n'
-            '  s.ptr.$mKokaName');
+            '  ${m.type.convertExternTypeToFFI(w, 's.ptr.$mKokaName')}');
         s.writeln();
 
         s.writeln(
@@ -209,13 +209,13 @@ abstract class Compound extends BindingType {
         s.writeln();
 
         s.writeln(
-            'pub inline extern $kokaName-ptrraw/set-$mKokaName(s: intptr_t, $mKokaName: ${m.type.getKokaFFIType(w)}): ()\n'
-            '  c inline "(($cfulltype*)#1)->${m.originalName} = (${m.type.baseType is Compound && m.type.isPointerType ? (m.type.baseType as Compound).cfulltype + "*" : m.type.getKokaExternType(w)})#2"');
+            'pub inline extern $kokaName-ptrraw/set-$mKokaName(s: intptr_t, $mKokaName: ${m.type.getKokaExternType(w)}): ()\n'
+            '  c inline "(($cfulltype*)#1)->${m.originalName} = (${m.type.getRawCType(w)})#2"');
         s.writeln();
 
         s.writeln(
             'pub inline fun ${kokaName}p/set-$mKokaName(s: $kokaPointerName, $mKokaName: ${m.type.getKokaFFIType(w)}): ()\n'
-            '  s.ptr.set-$mKokaName($mKokaName)');
+            '  s.ptr.set-$mKokaName(${m.type.convertFFITypeToExtern(w, mKokaName)})');
         s.writeln();
 
         s.writeln(
@@ -266,25 +266,28 @@ abstract class Compound extends BindingType {
               's.with-ptr(fn(kk-internal-ptr) kk-internal-ptr.${kokaName}p/set-$mKokaName($argb))\n');
         }
       }
-      if (!sameWrapperAndFFIType) {
-        s.writeln('pub fun $kokaName/to-koka(s: $kokaOwnedName): $kokaName');
-        final args = members.map((m) => m.type.sameWrapperAndFFIType
-            ? 's.${kokaName}c/${m.name}'
-            : m.type.baseType is Compound
-                ? m.type.convertFFITypeToWrapper(w, 's.${kokaName}c/${m.name}',
-                        objCRetain: false,
-                        additionalStatements: s,
-                        namer: UniqueNamer({'s'})) +
-                    '.to-koka'
-                : m.type.convertFFITypeToWrapper(w, 's.${kokaName}c/${m.name}',
-                    objCRetain: false,
-                    additionalStatements: s,
-                    namer: UniqueNamer({'s'})));
-        s.writeln('  ${kokaName.capitalize}(${args.join(', ')})\n');
-      }
+      // if (!sameWrapperAndFFIType) {
+      //   s.writeln(
+      //       'pub fun ${kokaName}p/to-koka(s: $kokaPointerName): $kokaName');
+      //   final args = members.map((m) => m.type.sameWrapperAndFFIType
+      //       ? 's.$kokaPointerName/${m.name}'
+      //       : m.type.baseType is Compound
+      //           ? m.type.convertFFITypeToWrapper(
+      //                   w, 's.$kokaPointerName/${m.name}',
+      //                   objCRetain: false,
+      //                   additionalStatements: s,
+      //                   namer: UniqueNamer({'s'})) +
+      //               '.to-koka'
+      //           : m.type.convertFFITypeToWrapper(
+      //               w, 's.$kokaPointerName/${m.name}',
+      //               objCRetain: false,
+      //               additionalStatements: s,
+      //               namer: UniqueNamer({'s'})));
+      //   s.writeln('  ${kokaName.capitalize}(${args.join(', ')})\n');
+      // }
     } else if (isOpaque) {
-      s.writeln(
-          'pub fun $kokaName/to-koka(s: $kokaOwnedName): $kokaName\n  ${kokaName.capitalize}()\n');
+      // s.writeln(
+      //     'pub fun $kokaName/to-koka(s: $kokaPointerName): $kokaName\n  ${kokaName.capitalize}()\n');
     }
     return BindingString(
         type: isStruct ? BindingStringType.struct : BindingStringType.union,
@@ -303,6 +306,9 @@ abstract class Compound extends BindingType {
       m.type.addDependencies(dependencies);
     }
   }
+
+  @override
+  String getRawCType(Writer w) => cfulltype;
 
   @override
   bool get isIncompleteCompound => isIncomplete;
@@ -338,7 +344,7 @@ abstract class Compound extends BindingType {
       {required bool objCRetain,
       required StringBuffer additionalStatements,
       required UniqueNamer namer}) {
-    return '($cfulltype)($value)';
+    return 'throw("Not implemented")';
   }
 
   @override

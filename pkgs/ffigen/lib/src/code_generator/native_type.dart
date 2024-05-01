@@ -27,7 +27,7 @@ enum SupportedNativeType {
 /// Represents a primitive native type, such as float.
 class NativeType extends Type {
   static const _primitives = <SupportedNativeType, NativeType>{
-    SupportedNativeType.Void: NativeType._('kk_unit_t', '()', '()', '()'),
+    SupportedNativeType.Void: NativeType._('void', '()', '()', '()'),
     SupportedNativeType.Char: NativeType._('char', 'int8', 'int', '0'),
     SupportedNativeType.Int8: NativeType._('int8_t', 'int8', 'int', '0'),
     SupportedNativeType.Int16: NativeType._('int16_t', 'int16', 'int', '0'),
@@ -59,6 +59,7 @@ class NativeType extends Type {
       this._cType, this._ffiType, this._dartType, this._defaultValue);
   factory NativeType(SupportedNativeType type) => _primitives[type]!;
 
+  @override
   String getRawCType(Writer w) => _cType;
 
   @override

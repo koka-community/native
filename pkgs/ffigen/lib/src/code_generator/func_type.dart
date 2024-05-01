@@ -56,6 +56,10 @@ class FunctionType extends Type {
   }
 
   @override
+  String getRawCType(Writer w) =>
+      '${returnType.getRawCType(w)} (*)(${parameters.map((p) => p.type.getRawCType(w)).join(', ')})';
+
+  @override
   String getKokaExternType(Writer w, {bool writeArgumentNames = true}) =>
       _getTypeImpl(writeArgumentNames, (Type t) => t.getKokaExternType(w),
           varArgWrapper: '${w.ffiLibraryPrefix}.VarArgs');
@@ -133,6 +137,9 @@ class NativeFunc extends Type {
   void addDependencies(Set<Binding> dependencies) {
     _type.addDependencies(dependencies);
   }
+
+  @override
+  String getRawCType(Writer w) => _type.getRawCType(w);
 
   @override
   String getKokaExternType(Writer w) => 'intptr_t';

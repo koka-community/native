@@ -44,7 +44,7 @@ abstract class Type {
   /// Returns the raw extern ffi definition type. This is the basic bool, sized int or intptr_t type that can be cast directly to the C signature
   String getKokaExternType(Writer w) => getRawCType(w);
 
-  /// Returns the simply wrapped type (e.g. c-pointer<type> for pointers, c-array<type> for arrays, etc.)
+  /// Returns the simply wrapped type (e.g. c-pointer<type> for pointers, c-array<type> for arrays, what about ints?)
   String getKokaFFIType(Writer w) => getKokaExternType(w);
 
   /// Returns the user type of the Type. This is the type that is presented to
