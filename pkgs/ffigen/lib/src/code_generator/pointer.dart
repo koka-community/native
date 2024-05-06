@@ -10,14 +10,16 @@ import 'writer.dart';
 /// Represents a pointer.
 class PointerType extends Type {
   final Type child;
+  final bool constQualified;
 
-  PointerType._(this.child);
+  PointerType._(this.child, this.constQualified);
 
-  factory PointerType(Type child) {
+  factory PointerType(Type child, {bool constQualified = false}) {
     if (child == objCObjectType) {
       return ObjCObjectPointer();
     }
-    return PointerType._(child);
+
+    return PointerType._(child, constQualified);
   }
 
   @override
@@ -31,14 +33,18 @@ class PointerType extends Type {
   @override
   String getRawCType(Writer w) {
     if (child is NativeFunc) {
+      print(
+          "PointerType._($child, $constQualified); ${(child as NativeFunc).type.runtimeType}");
       return child.getRawCType(w);
     }
     if (child.getRawCType(w) == 'intptr_t') {
       return 'intptr_t';
     } else {
-      return '${child.getRawCType(w)}*';
+      return '$constPrefix${child.getRawCType(w)}*';
     }
   }
+
+  String get constPrefix => constQualified ? 'const ' : '';
 
   @override
   String getKokaExternType(Writer w) => 'intptr_t';
@@ -81,7 +87,7 @@ class PointerType extends Type {
 }
 
 class BorrowedPointerType extends PointerType {
-  BorrowedPointerType(Type child) : super._(child);
+  BorrowedPointerType(Type child) : super._(child, false);
 
   @override
   String getKokaWrapperType(Writer w) =>
@@ -110,7 +116,7 @@ class BorrowedPointerType extends PointerType {
 }
 
 class OwnedPointerType extends PointerType {
-  OwnedPointerType(Type child) : super._(child);
+  OwnedPointerType(Type child) : super._(child, false);
 
   @override
   String getKokaWrapperType(Writer w) => 'owned-c<${child.getKokaFFIType(w)}>';
@@ -143,7 +149,7 @@ class ConstantArray extends PointerType {
   final bool useArrayType;
 
   ConstantArray(this.length, Type child, {required this.useArrayType})
-      : super._(child);
+      : super._(child, false);
 
   @override
   Type get baseArrayType => child.baseArrayType;
@@ -175,7 +181,7 @@ class ConstantArray extends PointerType {
 
 /// Represents an incomplete array, which has an unknown size.
 class IncompleteArray extends PointerType {
-  IncompleteArray(super.child) : super._();
+  IncompleteArray(Type child) : super._(child, false);
 
   @override
   Type get baseArrayType => child.baseArrayType;
@@ -207,7 +213,7 @@ class ObjCObjectPointer extends PointerType {
   factory ObjCObjectPointer() => _inst;
 
   static final _inst = ObjCObjectPointer._();
-  ObjCObjectPointer._() : super._(objCObjectType);
+  ObjCObjectPointer._() : super._(objCObjectType, false);
 
   @override
   String getKokaWrapperType(Writer w) => w.generateForPackageObjectiveC

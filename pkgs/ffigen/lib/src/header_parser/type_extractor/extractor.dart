@@ -112,7 +112,8 @@ Type getCodeGenType(
           s.usr == strings.dartHandleUsr) {
         return HandleType();
       }
-      return PointerType(s);
+      return PointerType(s,
+          constQualified: clang.clang_isConstQualifiedType(cxtype) == 1);
     case clang_types.CXTypeKind.CXType_FunctionProto:
       // Primarily used for function pointers.
       return _extractFromFunctionProto(cxtype, cursor: originalCursor);

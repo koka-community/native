@@ -138,9 +138,6 @@ class Func extends LookUpBinding {
       dartArgDeclString = functionType.dartTypeParameters
           .map((p) => '^${p.name}: ${p.type.getKokaFFIType(w)}')
           .join(', ');
-      if (name == 'uv-loop-configure') {
-        print(functionType.dartTypeParameters.map((p) => p.type.runtimeType));
-      }
       final argString = functionType.dartTypeParameters
           .map((p) => p.type.convertFFITypeToExtern(w, p.name))
           .join(', ');
@@ -171,9 +168,9 @@ class Func extends LookUpBinding {
       if (valueReturn) {
         s.writeln(
             '''pub extern external/$nativeFuncName($externArgDeclString): $externReturnType
-  c inline "(${functionType.returnType.getRawCType(w)})* _s = kk_malloc(sizeof(${functionType.returnType.getRawCType(w)}), kk_context());\\n'''
-            '''  *_s = $originalName($ffiArgs);\\n'''
-            '''  return (intptr_t)_s"\n''');
+  c inline "${functionType.returnType.getRawCType(w)}* _s = kk_malloc(sizeof(${functionType.returnType.getRawCType(w)}), kk_context());\\n'''
+            '''*_s = $originalName($ffiArgs);\\n'''
+            '''(intptr_t)_s"\n''');
       } else {
         s.writeln(
             '''pub extern external/$nativeFuncName($externArgDeclString): $externReturnType

@@ -131,7 +131,7 @@ class Typealias extends BindingType {
   String getCType(Writer w) => originalName;
 
   @override
-  String getRawCType(Writer w) => type.getRawCType(w);
+  String getRawCType(Writer w) => originalName;
 
   @override
   String getKokaExternType(Writer w) => type.getKokaExternType(w);
