@@ -110,6 +110,9 @@ abstract class Compound extends BindingType {
     if (isStruct && pack != null) {
       s.write('// Packed($pack)\n');
     }
+    for (final m in members) {
+      m.name = localUniqueNamer.makeUnique(m.name);
+    }
     // Write class declaration.
     final kokaFfiName = getKokaFFIType(w);
     final kokaName = getKokaWrapperType(w);
@@ -125,31 +128,23 @@ abstract class Compound extends BindingType {
       }
       const indent = '  ';
       for (final m in members) {
-        m.name = localUniqueNamer.makeUnique(m.name);
-
         if (m.dartDoc != null) {
           s.write('$indent// ');
           s.writeAll(m.dartDoc!.split('\n'), '\n$indent// ');
           s.writeln();
         }
-        if (m.type case final ConstantArray arrayType) {
-          s.writeln(makeArrayAnnotation(w, arrayType));
-          s.writeln(
-              '$indent${m.name}: borrowed-c<s,${_getInlineArrayTypeString(m.type, w)}>');
+
+        // if (!m.type.sameFfiDartAndCType) {
+        //   s.writeln('$indent@${m.type.getCType(w)}()');
+        // }
+        if (m.type.baseType is Compound) {
+          s.writeln('$indent${m.name}: ${m.type.baseType.getKokaFFIType(w)}');
         } else {
-          // if (!m.type.sameFfiDartAndCType) {
-          //   s.writeln('$indent@${m.type.getCType(w)}()');
-          // }
-          if (m.type.baseType is Compound) {
-            s.writeln(
-                '$indent${m.name}: ${m.type.baseType.getKokaWrapperType(w)}');
-          } else {
-            s.writeln('$indent${m.name}: ${m.type.getKokaWrapperType(w)}');
-          }
+          s.writeln('$indent${m.name}: ${m.type.getKokaWrapperType(w)}');
         }
       }
       s.writeln();
-    } else if (isOpaque) {
+    } else {
       s.writeln('pub struct $kokaName');
     }
     s.writeln('pub type $kokaFfiName');
@@ -185,7 +180,9 @@ abstract class Compound extends BindingType {
 
       for (final m in members) {
         final mKokaName = m.name;
-        if (m.type is ConstantArray) {
+        final t = m.type;
+        // Don't handle returning compound types by value
+        if (t is Compound || (t is Typealias && t.typealiasType is Compound)) {
           continue;
         }
         s.writeln(
@@ -195,7 +192,7 @@ abstract class Compound extends BindingType {
 
         s.writeln(
             'pub inline fun ${kokaName}p/$mKokaName(s: $kokaPointerName): ${m.type.getKokaFFIType(w)}\n'
-            '  ${m.type.convertExternTypeToFFI(w, 's.ptr.$mKokaName')}');
+            '  ${m.type.convertExternTypeToFFI(w, 's.cextern/c-pointer/ptr.$kokaName-ptrraw/$mKokaName')}');
         s.writeln();
 
         s.writeln(
@@ -215,7 +212,7 @@ abstract class Compound extends BindingType {
 
         s.writeln(
             'pub inline fun ${kokaName}p/set-$mKokaName(s: $kokaPointerName, $mKokaName: ${m.type.getKokaFFIType(w)}): ()\n'
-            '  s.ptr.set-$mKokaName(${m.type.convertFFITypeToExtern(w, mKokaName)})');
+            '  s.cextern/c-pointer/ptr.$kokaName-ptrraw/set-$mKokaName(${m.type.convertFFITypeToExtern(w, mKokaName)})');
         s.writeln();
 
         s.writeln(
@@ -337,7 +334,7 @@ abstract class Compound extends BindingType {
     required StringBuffer additionalStatements,
     required UniqueNamer namer,
   }) =>
-      sameWrapperAndFFIType ? value : '$value.to-koka';
+      sameWrapperAndFFIType ? value : '$value';
 
   @override
   String convertWrapperToFFIType(Writer w, String value,

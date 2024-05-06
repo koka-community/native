@@ -35,6 +35,7 @@ const keywords = {
   'for',
   'Function',
   'get',
+  'handle',
   'hide',
   'if',
   'implements',

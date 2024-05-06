@@ -74,12 +74,12 @@ class PointerType extends Type {
     required StringBuffer additionalStatements,
     required UniqueNamer namer,
   }) {
-    return '$value.ptr';
+    return '$value.cextern/c-pointer/ptr';
   }
 
   @override
   String convertFFITypeToExtern(Writer w, String value) {
-    return '$value.ptr';
+    return '$value.cextern/c-pointer/ptr';
   }
 
   @override
@@ -181,6 +181,35 @@ class ConstantArray extends PointerType {
   String getKokaFFIType(Writer w) => 'c-array<${child.getKokaFFIType(w)}>';
   @override
   String getKokaWrapperType(Writer w) => 'c-array<${child.getKokaFFIType(w)}>';
+  @override
+  String convertWrapperToFFIType(
+    Writer w,
+    String value, {
+    required bool objCRetain,
+    required StringBuffer additionalStatements,
+    required UniqueNamer namer,
+  }) {
+    return '$value.cextern/carray/cptr';
+  }
+
+  @override
+  String convertFFITypeToExtern(Writer w, String value) {
+    return '$value.cextern/carray/cptr';
+  }
+
+  @override
+  String convertFFITypeToWrapper(Writer w, String value,
+      {required bool objCRetain,
+      String? objCEnclosingClass,
+      required StringBuffer additionalStatements,
+      required UniqueNamer namer}) {
+    return '$value.cextern/cptr/carray';
+  }
+
+  @override
+  String convertExternTypeToFFI(Writer w, String value) {
+    return '$value.cextern/cptr/carray';
+  }
 }
 
 /// Represents an incomplete array, which has an unknown size.

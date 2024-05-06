@@ -54,7 +54,11 @@ class EnumClass extends BindingType {
     s.writeln('type ${typeName}');
     const indent = '  ';
     final names = {
-      for (final ec in enumConstants) ec: localUniqueNamer.makeUnique(ec.name)
+      for (final ec in enumConstants)
+        ec: localUniqueNamer
+            .makeUnique(ec.name)
+            .replaceAll('-', '_')
+            .toUpperCase()
     };
     for (final ec in enumConstants) {
       final enumValueName = names[ec];
