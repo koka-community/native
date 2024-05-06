@@ -84,8 +84,7 @@ class Global extends LookUpBinding {
             .addNativeSymbol(type: 'c-owned<$cType>', name: name);
       }
     } else {
-      final pointerName =
-          w.wrapperLevelUniqueNamer.makeUnique('_$globalVarName');
+      final pointerName = w.ffiLevelUniqueNamer.makeUnique('_$globalVarName');
 
       s.write(
           "val $pointerName: c-owned<$cType> = ${w.lookupFuncIdentifier}<$cType>('$originalName')\n\n");

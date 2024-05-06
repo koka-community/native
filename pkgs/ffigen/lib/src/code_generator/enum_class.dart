@@ -97,10 +97,25 @@ class EnumClass extends BindingType {
   }
 
   @override
+  String getRawCType(Writer w) => 'int32_t';
+
+  @override
   String getKokaExternType(Writer w) => nativeType.getKokaExternType(w);
 
   @override
   String getKokaFFIType(Writer w) => nativeType.getKokaFFIType(w);
+  @override
+  String getKokaWrapperType(Writer w) => nativeType.getKokaWrapperType(w);
+
+  @override
+  String convertExternTypeToFFI(Writer w, String value) {
+    return nativeType.convertExternTypeToFFI(w, value);
+  }
+
+  @override
+  String convertFFITypeToExtern(Writer w, String value) {
+    return nativeType.convertFFITypeToExtern(w, value);
+  }
 
   @override
   bool get sameExternAndFFIType => nativeType.sameExternAndFFIType;

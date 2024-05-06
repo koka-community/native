@@ -48,58 +48,45 @@ class NativeType extends Type {
   };
 
   final String _cType;
-  final String _dartType;
-  final String _ffiType;
+  final String _kokaType;
+  final String _externType;
   final String? _defaultValue;
 
   const NativeType._(
-      this._cType, this._ffiType, this._dartType, this._defaultValue);
+      this._cType, this._externType, this._kokaType, this._defaultValue);
 
   const NativeType.other(
-      this._cType, this._ffiType, this._dartType, this._defaultValue);
+      this._cType, this._externType, this._kokaType, this._defaultValue);
   factory NativeType(SupportedNativeType type) => _primitives[type]!;
 
   @override
   String getRawCType(Writer w) => _cType;
 
   @override
-  String getKokaExternType(Writer w) => _ffiType;
+  String getKokaExternType(Writer w) => _externType;
 
   @override
-  String getKokaFFIType(Writer w) => _ffiType;
+  String getKokaFFIType(Writer w) => _kokaType;
 
   @override
-  String getKokaWrapperType(Writer w) => _dartType;
+  String getKokaWrapperType(Writer w) => _kokaType;
 
   @override
-  bool get sameExternAndFFIType => _cType == _ffiType;
+  bool get sameExternAndFFIType => _externType == _kokaType;
 
   @override
-  bool get sameWrapperAndExternType => _cType == _dartType;
+  bool get sameWrapperAndExternType => _externType == _kokaType;
 
   @override
-  bool get sameWrapperAndFFIType => _dartType == _ffiType;
+  bool get sameWrapperAndFFIType => true;
 
   @override
-  String convertFFITypeToWrapper(
-    Writer w,
-    String value, {
-    required bool objCRetain,
-    String? objCEnclosingClass,
-    required StringBuffer additionalStatements,
-    required UniqueNamer namer,
-  }) =>
-      sameWrapperAndFFIType ? value : '$value.$_dartType';
+  String convertExternTypeToFFI(Writer w, String value) =>
+      sameExternAndFFIType ? value : '$value.$_kokaType';
 
   @override
-  String convertWrapperToFFIType(
-    Writer w,
-    String value, {
-    required bool objCRetain,
-    required StringBuffer additionalStatements,
-    required UniqueNamer namer,
-  }) =>
-      sameWrapperAndFFIType ? value : '$value.$_ffiType';
+  String convertFFITypeToExtern(Writer w, String value) =>
+      sameExternAndFFIType ? value : '$value.$_externType';
 
   @override
   String toString() => _cType;

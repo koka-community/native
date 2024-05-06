@@ -112,7 +112,7 @@ class ObjCInternalGlobal extends NoLookUpBinding {
   @override
   BindingString toBindingString(Writer w) {
     final s = StringBuffer();
-    name = w.wrapperLevelUniqueNamer.makeUnique(name);
+    name = w.ffiLevelUniqueNamer.makeUnique(name);
     s.write('late final $name = ${makeValue(w)};\n');
     return BindingString(type: BindingStringType.global, string: s.toString());
   }

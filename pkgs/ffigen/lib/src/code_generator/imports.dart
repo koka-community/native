@@ -88,7 +88,7 @@ class SelfImportedType extends Type {
   String toString() => cType;
 }
 
-final ffiImport = LibraryImport('ffi', 'std/cextern');
+final ffiImport = LibraryImport('ffi', 'std/core/cextern');
 final ffiPkgImport = LibraryImport('pkg_ffi', 'package:ffi/ffi.dart');
 final objcPkgImport = LibraryImport(
     'objc', 'package:objective_c/objective_c.dart',

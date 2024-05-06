@@ -80,14 +80,6 @@ abstract class Compound extends BindingType {
     }
   }
 
-  String _getInlineArrayTypeString(Type type, Writer w) {
-    if (type is ConstantArray) {
-      return 'c-array<'
-          '${_getInlineArrayTypeString(type.child, w)}>';
-    }
-    return type.getKokaExternType(w);
-  }
-
   @override
   BindingString toBindingString(Writer w) {
     final s = StringBuffer();

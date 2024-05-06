@@ -98,7 +98,7 @@ class Writer {
   /// Used by [Binding]s for generating required code.
   late UniqueNamer _topLevelUniqueNamer, _wrapperLevelUniqueNamer;
   UniqueNamer get topLevelUniqueNamer => _topLevelUniqueNamer;
-  UniqueNamer get wrapperLevelUniqueNamer => _wrapperLevelUniqueNamer;
+  UniqueNamer get ffiLevelUniqueNamer => _wrapperLevelUniqueNamer;
 
   late String _arrayHelperClassPrefix;
 
@@ -250,7 +250,7 @@ class Writer {
     // Since the annotation goes on a `library;` directive, it needs to appear
     // before other definitions in the file.
     result.writeln();
-    result.writeln("import std/cextern\n"
+    result.writeln("import std/core/cextern\n"
         "import std/num/int32\n"
         "import std/num/int64\n"
         "import std/num/float64\n");
@@ -307,7 +307,7 @@ class Writer {
     // Write neccesary imports.
     for (final lib in _usedImports) {
       final path = lib.importPath(generateForPackageObjectiveC);
-      result.writeln("import $path\n");
+      if (path != 'std/core/cextern') result.writeln("import $path\n");
     }
     result.write(s);
 

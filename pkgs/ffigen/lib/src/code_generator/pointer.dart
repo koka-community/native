@@ -67,28 +67,8 @@ class PointerType extends Type {
   String cacheKey() => '${child.cacheKey()}*';
 
   @override
-  String convertWrapperToFFIType(
-    Writer w,
-    String value, {
-    required bool objCRetain,
-    required StringBuffer additionalStatements,
-    required UniqueNamer namer,
-  }) {
-    return '$value.cextern/c-pointer/ptr';
-  }
-
-  @override
   String convertFFITypeToExtern(Writer w, String value) {
     return '$value.cextern/c-pointer/ptr';
-  }
-
-  @override
-  String convertFFITypeToWrapper(Writer w, String value,
-      {required bool objCRetain,
-      String? objCEnclosingClass,
-      required StringBuffer additionalStatements,
-      required UniqueNamer namer}) {
-    return 'C-pointer($value)';
   }
 
   @override
@@ -181,29 +161,10 @@ class ConstantArray extends PointerType {
   String getKokaFFIType(Writer w) => 'c-array<${child.getKokaFFIType(w)}>';
   @override
   String getKokaWrapperType(Writer w) => 'c-array<${child.getKokaFFIType(w)}>';
-  @override
-  String convertWrapperToFFIType(
-    Writer w,
-    String value, {
-    required bool objCRetain,
-    required StringBuffer additionalStatements,
-    required UniqueNamer namer,
-  }) {
-    return '$value.cextern/carray/cptr';
-  }
 
   @override
   String convertFFITypeToExtern(Writer w, String value) {
     return '$value.cextern/carray/cptr';
-  }
-
-  @override
-  String convertFFITypeToWrapper(Writer w, String value,
-      {required bool objCRetain,
-      String? objCEnclosingClass,
-      required StringBuffer additionalStatements,
-      required UniqueNamer namer}) {
-    return '$value.cextern/cptr/carray';
   }
 
   @override
@@ -229,6 +190,16 @@ class IncompleteArray extends PointerType {
   String getKokaFFIType(Writer w) => 'c-array<${child.getKokaFFIType(w)}>';
   @override
   String getKokaWrapperType(Writer w) => 'c-array<${child.getKokaFFIType(w)}>';
+
+  @override
+  String convertFFITypeToExtern(Writer w, String value) {
+    return '$value.cextern/carray/cptr';
+  }
+
+  @override
+  String convertExternTypeToFFI(Writer w, String value) {
+    return '$value.cextern/cptr/carray';
+  }
 }
 
 /// A pointer to an NSObject.
