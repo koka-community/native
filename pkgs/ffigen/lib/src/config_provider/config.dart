@@ -184,6 +184,9 @@ class Config {
   FfiNativeConfig get ffiNativeConfig => _ffiNativeConfig;
   late FfiNativeConfig _ffiNativeConfig;
 
+  bool get generateCompoundMemberAccessors => _generateCompoundMemberAccessors;
+  late bool _generateCompoundMemberAccessors;
+
   /// Where to ignore compiler warnings/errors in source header files.
   bool ignoreSourceErrors = false;
 
@@ -660,6 +663,13 @@ class Config {
             valueConfigSpec: StringConfigSpec(
               result: (node) => _preamble = node.value as String?,
             )),
+        HeterogeneousMapEntry(
+          key: strings.generateCompoundMemberAccessors,
+          valueConfigSpec: BoolConfigSpec(),
+          defaultValue: (node) => true,
+          resultOrDefault: (node) =>
+              _generateCompoundMemberAccessors = node.value as bool,
+        ),
         HeterogeneousMapEntry(
           key: strings.useDartHandle,
           valueConfigSpec: BoolConfigSpec(),

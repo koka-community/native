@@ -33,7 +33,7 @@ abstract class Compound extends BindingType {
   CompoundType compoundType;
   bool get isStruct => compoundType == CompoundType.struct;
   bool get isUnion => compoundType == CompoundType.union;
-
+  final bool isUnnamed;
   Compound({
     super.usr,
     super.originalName,
@@ -44,6 +44,7 @@ abstract class Compound extends BindingType {
     super.dartDoc,
     List<Member>? members,
     super.isInternal,
+    this.isUnnamed = false,
   }) : members = members ?? [];
 
   factory Compound.fromType({
@@ -55,6 +56,7 @@ abstract class Compound extends BindingType {
     int? pack,
     String? dartDoc,
     List<Member>? members,
+    bool isUnnamed = false,
   }) {
     switch (type) {
       case CompoundType.struct:
@@ -66,6 +68,7 @@ abstract class Compound extends BindingType {
           pack: pack,
           dartDoc: dartDoc,
           members: members,
+          isUnnamed: isUnnamed,
         );
       case CompoundType.union:
         return Union(
@@ -76,6 +79,7 @@ abstract class Compound extends BindingType {
           pack: pack,
           dartDoc: dartDoc,
           members: members,
+          isUnnamed: isUnnamed,
         );
     }
   }
@@ -150,7 +154,7 @@ abstract class Compound extends BindingType {
         'pub alias $kokaOwnedArrayName = ${OwnedPointerType(IncompleteArray(this)).getKokaWrapperType(w)}');
     s.writeln();
 
-    if (!isOpaque) {
+    if (!(isUnion || isIncomplete || isOpaque || isUnnamed)) {
       s.writeln('pub extern $kokaName/size-of(c: c-null<$kokaFfiName>): int32\n'
           '  c inline "sizeof($cfulltype)"\n');
 
@@ -169,90 +173,94 @@ abstract class Compound extends BindingType {
           'pub fun ${kokaName}c-array-calloc(n: int): $kokaOwnedArrayName\n'
           '  malloc-c(n.int32, ?size-of=$kokaName/size-of)');
       s.writeln();
-
-      for (final m in members) {
-        final mKokaName = m.name;
-        final t = m.type;
-        // Don't handle returning compound types by value
-        if (t is Compound || (t is Typealias && t.typealiasType is Compound)) {
-          continue;
-        }
-        s.writeln(
-            'pub inline extern $kokaName-ptrraw/$mKokaName(s: intptr_t): ${m.type.getKokaExternType(w)}\n'
-            '  c inline "(${m.type.isPointerType ? 'intptr_t' : m.type.getRawCType(w)})((($cfulltype*)#1)->${m.originalName})"');
-        s.writeln();
-
-        s.writeln(
-            'pub inline fun ${kokaName}p/$mKokaName(s: $kokaPointerName): ${m.type.getKokaFFIType(w)}\n'
-            '  ${m.type.convertExternTypeToFFI(w, 's.cextern/c-pointer/ptr.$kokaName-ptrraw/$mKokaName')}');
-        s.writeln();
-
-        s.writeln(
-            'pub inline fun ${kokaName}c/$mKokaName(^s: $kokaOwnedName): ${m.type.getKokaFFIType(w)}\n'
-            '  s.with-ptr(${kokaName}p/$mKokaName)');
-        s.writeln();
-
-        s.writeln(
-            'pub inline fun ${kokaName}cb/$mKokaName(^s: $kokaBorrowedName): ${m.type.getKokaFFIType(w)}\n'
-            '  s.with-ptr(${kokaName}p/$mKokaName)');
-        s.writeln();
-
-        s.writeln(
-            'pub inline extern $kokaName-ptrraw/set-$mKokaName(s: intptr_t, $mKokaName: ${m.type.getKokaExternType(w)}): ()\n'
-            '  c inline "(($cfulltype*)#1)->${m.originalName} = (${m.type.getRawCType(w)})#2"');
-        s.writeln();
-
-        s.writeln(
-            'pub inline fun ${kokaName}p/set-$mKokaName(s: $kokaPointerName, $mKokaName: ${m.type.getKokaFFIType(w)}): ()\n'
-            '  s.cextern/c-pointer/ptr.$kokaName-ptrraw/set-$mKokaName(${m.type.convertFFITypeToExtern(w, mKokaName)})');
-        s.writeln();
-
-        s.writeln(
-            'pub inline fun ${kokaName}c/set-$mKokaName(^s: $kokaOwnedName, $mKokaName: ${m.type.getKokaFFIType(w)}): ()\n'
-            '  s.with-ptr(fn(kk-internal-ptr) kk-internal-ptr.${kokaName}p/set-$mKokaName($mKokaName))');
-        s.writeln();
-
-        s.writeln(
-            'pub inline fun ${kokaName}cb/set-$mKokaName(^s: $kokaBorrowedName, $mKokaName: ${m.type.getKokaFFIType(w)}): ()\n'
-            '  s.with-ptr(fn(kk-internal-ptr) kk-internal-ptr.${kokaName}p/set-$mKokaName($mKokaName))');
-        s.writeln();
-
-        if (!m.type.sameWrapperAndFFIType) {
+      if (w.generateCompoundMemberAccessors && !isUnnamed) {
+        for (final m in members) {
+          final mKokaName = m.name;
+          final t = m.type;
+          // Don't handle returning compound types by value
+          if (t is Compound ||
+              (t is Typealias && t.typealiasType is Compound)) {
+            // TODO: Return compound types as borrowed references, and don't allow assignments to them.
+            continue;
+          }
           s.writeln(
-              'pub inline fun ${kokaName}c-wrapper/$mKokaName(^s: $kokaOwnedName): ${m.type.getKokaWrapperType(w)}');
-          final reso = m.type.convertFFITypeToWrapper(
-              w, 's.with-ptr(${kokaName}p/$mKokaName)',
-              objCRetain: false,
-              additionalStatements: s,
-              namer: UniqueNamer({'s'}));
-          s.writeln('  $reso\n');
+              'pub inline extern $kokaName-ptrraw/$mKokaName(s: intptr_t): ${m.type.getKokaExternType(w)}\n'
+              '  c inline "(${m.type.isPointerType ? 'intptr_t' : m.type.getRawCType(w)})((($cfulltype*)#1)->${m.originalName})"');
+          s.writeln();
+          final convertEffects =
+              '<${m.type.convertExternToFFIEffects.join(',')}>';
+          s.writeln(
+              'pub inline fun ${kokaName}p/$mKokaName(s: $kokaPointerName): $convertEffects ${m.type.getKokaFFIType(w)}\n'
+              '  ${m.type.convertExternTypeToFFI(w, 's.cextern/c-pointer/ptr.$kokaName-ptrraw/$mKokaName')}');
+          s.writeln();
 
           s.writeln(
-              'pub inline fun ${kokaName}cb-wrapper/$mKokaName(^s: $kokaBorrowedName): ${m.type.getKokaWrapperType(w)}');
-          final resb = m.type.convertFFITypeToWrapper(
-              w, 's.with-ptr(${kokaName}p/$mKokaName)',
-              objCRetain: false,
-              additionalStatements: s,
-              namer: UniqueNamer({'s'}));
-          s.writeln('  $resb\n');
+              'pub inline fun ${kokaName}c/$mKokaName(^s: $kokaOwnedName): $convertEffects ${m.type.getKokaFFIType(w)}\n'
+              '  s.with-ptr(${kokaName}p/$mKokaName)');
+          s.writeln();
 
-          s.write(
-              'pub inline fun ${kokaName}c-wrapper/set-$mKokaName(^s: $kokaOwnedName, $mKokaName: ${m.type.getKokaWrapperType(w)}): ()\n  ');
-          final argo = m.type.convertWrapperToFFIType(w, mKokaName,
-              objCRetain: false,
-              additionalStatements: s,
-              namer: UniqueNamer({'s', mKokaName}));
           s.writeln(
-              's.with-ptr(fn(kk-internal-ptr) kk-internal-ptr.${kokaName}p/set-$mKokaName($argo))\n');
+              'pub inline fun ${kokaName}cb/$mKokaName(^s: $kokaBorrowedName): $convertEffects ${m.type.getKokaFFIType(w)}\n'
+              '  s.with-ptr(${kokaName}p/$mKokaName)');
+          s.writeln();
 
-          s.write(
-              'pub inline fun ${kokaName}cb-wrapper/set-$mKokaName(^s: $kokaBorrowedName, $mKokaName: ${m.type.getKokaWrapperType(w)}): ()\n  ');
-          final argb = m.type.convertWrapperToFFIType(w, mKokaName,
-              objCRetain: false,
-              additionalStatements: s,
-              namer: UniqueNamer({'s', mKokaName}));
           s.writeln(
-              's.with-ptr(fn(kk-internal-ptr) kk-internal-ptr.${kokaName}p/set-$mKokaName($argb))\n');
+              'pub inline extern $kokaName-ptrraw/set-$mKokaName(s: intptr_t, $mKokaName: ${m.type.getKokaExternType(w)}): ()\n'
+              '  c inline "(($cfulltype*)#1)->${m.originalName} = (${m.type.getRawCType(w)})#2"');
+          s.writeln();
+
+          s.writeln(
+              'pub inline fun ${kokaName}p/set-$mKokaName(s: $kokaPointerName, $mKokaName: ${m.type.getKokaFFIType(w)}): ()\n'
+              '  s.cextern/c-pointer/ptr.$kokaName-ptrraw/set-$mKokaName(${m.type.convertFFITypeToExtern(w, mKokaName)})');
+          s.writeln();
+
+          s.writeln(
+              'pub inline fun ${kokaName}c/set-$mKokaName(^s: $kokaOwnedName, $mKokaName: ${m.type.getKokaFFIType(w)}): ()\n'
+              '  s.with-ptr(fn(kk-internal-ptr) kk-internal-ptr.${kokaName}p/set-$mKokaName($mKokaName))');
+          s.writeln();
+
+          s.writeln(
+              'pub inline fun ${kokaName}cb/set-$mKokaName(^s: $kokaBorrowedName, $mKokaName: ${m.type.getKokaFFIType(w)}): ()\n'
+              '  s.with-ptr(fn(kk-internal-ptr) kk-internal-ptr.${kokaName}p/set-$mKokaName($mKokaName))');
+          s.writeln();
+
+          if (!m.type.sameWrapperAndFFIType) {
+            s.writeln(
+                'pub inline fun ${kokaName}c-wrapper/$mKokaName(^s: $kokaOwnedName): ${m.type.getKokaWrapperType(w)}');
+            final reso = m.type.convertFFITypeToWrapper(
+                w, 's.with-ptr(${kokaName}p/$mKokaName)',
+                objCRetain: false,
+                additionalStatements: s,
+                namer: UniqueNamer({'s'}));
+            s.writeln('  $reso\n');
+
+            s.writeln(
+                'pub inline fun ${kokaName}cb-wrapper/$mKokaName(^s: $kokaBorrowedName): ${m.type.getKokaWrapperType(w)}');
+            final resb = m.type.convertFFITypeToWrapper(
+                w, 's.with-ptr(${kokaName}p/$mKokaName)',
+                objCRetain: false,
+                additionalStatements: s,
+                namer: UniqueNamer({'s'}));
+            s.writeln('  $resb\n');
+
+            s.write(
+                'pub inline fun ${kokaName}c-wrapper/set-$mKokaName(^s: $kokaOwnedName, $mKokaName: ${m.type.getKokaWrapperType(w)}): ()\n  ');
+            final argo = m.type.convertWrapperToFFIType(w, mKokaName,
+                objCRetain: false,
+                additionalStatements: s,
+                namer: UniqueNamer({'s', mKokaName}));
+            s.writeln(
+                's.with-ptr(fn(kk-internal-ptr) kk-internal-ptr.${kokaName}p/set-$mKokaName($argo))\n');
+
+            s.write(
+                'pub inline fun ${kokaName}cb-wrapper/set-$mKokaName(^s: $kokaBorrowedName, $mKokaName: ${m.type.getKokaWrapperType(w)}): ()\n  ');
+            final argb = m.type.convertWrapperToFFIType(w, mKokaName,
+                objCRetain: false,
+                additionalStatements: s,
+                namer: UniqueNamer({'s', mKokaName}));
+            s.writeln(
+                's.with-ptr(fn(kk-internal-ptr) kk-internal-ptr.${kokaName}p/set-$mKokaName($argb))\n');
+          }
         }
       }
       // if (!sameWrapperAndFFIType) {

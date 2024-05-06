@@ -16,6 +16,7 @@ class Writer {
 
   /// Holds bindings, which lookup symbols.
   final List<Binding> lookUpBindings;
+  final bool generateCompoundMemberAccessors;
 
   /// Holds bindings, which lookup symbols through `FfiNative`.
   final List<Binding> ffiNativeBindings;
@@ -113,6 +114,7 @@ class Writer {
   /// [_usedUpNames] should contain names of all the declarations which are
   /// already used. This is used to avoid name collisions.
   Writer({
+    required this.generateCompoundMemberAccessors,
     required this.lookUpBindings,
     required this.ffiNativeBindings,
     required this.noLookUpBindings,

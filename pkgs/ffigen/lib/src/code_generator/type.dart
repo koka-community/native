@@ -113,6 +113,8 @@ abstract class Type {
   /// example, for int types this returns the string '0'. A null return means
   /// that default values aren't supported for this type, eg void.
   String? getDefaultValue(Writer w) => null;
+
+  Set<String> get convertExternToFFIEffects => {};
 }
 
 /// Base class for all Type bindings.
@@ -192,6 +194,9 @@ abstract class BindingType extends NoLookUpBinding implements Type {
 
   @override
   String? getDefaultValue(Writer w) => null;
+
+  @override
+  Set<String> get convertExternToFFIEffects => {};
 }
 
 /// Represents an unimplemented type. Used as a marker, so that declarations

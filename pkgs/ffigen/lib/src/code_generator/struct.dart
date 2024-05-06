@@ -38,5 +38,6 @@ class Struct extends Compound {
     super.dartDoc,
     super.members,
     super.isInternal,
+    super.isUnnamed,
   }) : super(compoundType: CompoundType.struct);
 }

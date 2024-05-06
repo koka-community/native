@@ -49,6 +49,10 @@ class Func extends LookUpBinding {
   final bool objCReturnsRetained;
   final FfiNativeConfig ffiNativeConfig;
   late final String funcPointerName;
+  late final bool valueReturn = functionType.returnType is Compound;
+  late final Type returnType = functionType.returnType is Compound
+      ? PointerType(functionType.returnType)
+      : functionType.returnType;
 
   /// Contains typealias for function type if [exposeFunctionTypedefs] is true.
   Typealias? _exposedFunctionTypealias;
@@ -97,8 +101,7 @@ class Func extends LookUpBinding {
   BindingString toBindingString(Writer w) {
     final s = StringBuffer();
     final enclosingFuncName = name;
-    if (functionType.returnType is Compound ||
-        functionType.parameters.any((p) => p is Compound)) {
+    if (functionType.parameters.any((p) => p is Compound)) {
       _logger.warning(
           'Cannot generate function $enclosingFuncName with compound types passed by value ${functionType.dartTypeParameters.map((t) => t.type)}');
       return BindingString(type: BindingStringType.constant, string: "");
@@ -118,7 +121,7 @@ class Func extends LookUpBinding {
     final needsWrapper = !functionType.sameExternAndFFIType && !isInternal;
     final funcVarName =
         w.ffiLevelUniqueNamer.makeUnique('external/$enclosingFuncName');
-    final externReturnType = functionType.returnType.getKokaExternType(w);
+    final externReturnType = returnType.getKokaExternType(w);
     final externArgDeclString = functionType.dartTypeParameters
         .map((p) => '^${p.name}: ${p.type.getKokaExternType(w)}')
         .join(', ');
@@ -127,11 +130,11 @@ class Func extends LookUpBinding {
         .join(', ');
     late final String dartReturnType;
     late final String dartArgDeclString;
-
+    final Set<String> funcImplEffects = {};
     late final String funcImplCall;
     final strBuff = StringBuffer();
     if (needsWrapper) {
-      dartReturnType = functionType.returnType.getKokaFFIType(w);
+      dartReturnType = returnType.getKokaFFIType(w);
       dartArgDeclString = functionType.dartTypeParameters
           .map((p) => '^${p.name}: ${p.type.getKokaFFIType(w)}')
           .join(', ');
@@ -141,8 +144,11 @@ class Func extends LookUpBinding {
       final argString = functionType.dartTypeParameters
           .map((p) => p.type.convertFFITypeToExtern(w, p.name))
           .join(', ');
-      funcImplCall = functionType.returnType
-          .convertExternTypeToFFI(w, '$funcVarName($argString)');
+      funcImplCall =
+          returnType.convertExternTypeToFFI(w, '$funcVarName($argString)');
+      functionType.dartTypeParameters.forEach(
+          (p) => funcImplEffects.addAll(p.type.convertExternToFFIEffects));
+      funcImplEffects.addAll(returnType.convertExternToFFIEffects);
     } else {
       dartReturnType = externReturnType;
       dartArgDeclString = externArgDeclString;
@@ -161,15 +167,23 @@ class Func extends LookUpBinding {
 //         nativeSymbolName: originalName,
 //         isLeaf: isLeaf,
 //       )}
-
-      s.writeln(
-          '''pub extern external/$nativeFuncName($externArgDeclString): $externReturnType
-  c inline "(${functionType.returnType.isPointerType ? 'intptr_t' : functionType.returnType.getRawCType(w)})$originalName($ffiArgs)"\n''');
+      final effectsString = "<${funcImplEffects.join(',')}>";
+      if (valueReturn) {
+        s.writeln(
+            '''pub extern external/$nativeFuncName($externArgDeclString): $externReturnType
+  c inline "(${functionType.returnType.getRawCType(w)})* _s = kk_malloc(sizeof(${functionType.returnType.getRawCType(w)}), kk_context());\\n'''
+            '''  *_s = $originalName($ffiArgs);\\n'''
+            '''  return (intptr_t)_s"\n''');
+      } else {
+        s.writeln(
+            '''pub extern external/$nativeFuncName($externArgDeclString): $externReturnType
+  c inline "(${returnType.isPointerType ? 'intptr_t' : returnType.getRawCType(w)})$originalName($ffiArgs)"\n''');
+      }
       if (needsWrapper) {
         // print(
-        //     "Wrapper ${nativeFuncName} ${functionType.parameters.map((e) => e.type.runtimeType)} ${functionType.returnType}");
+        //     "Wrapper ${nativeFuncName} ${functionType.parameters.map((e) => e.type.runtimeType)} ${returnType}");
         s.writeln('''
-pub fun ffi/$nativeFuncName($dartArgDeclString): $dartReturnType
+pub fun ffi/$nativeFuncName($dartArgDeclString): $effectsString $dartReturnType
   ${strBuff.toString()}$funcImplCall\n''');
       }
 

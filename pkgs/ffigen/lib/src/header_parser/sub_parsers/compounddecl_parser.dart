@@ -130,7 +130,8 @@ Compound? parseCompoundDeclaration(
       // must be generated.
       return Compound.fromType(
         type: compoundType,
-        name: incrementalNamer.name('unnamed-$className'),
+        isUnnamed: true,
+        name: incrementalNamer.name('unnamed-${className}'),
         usr: declUsr,
         dartDoc: getCursorDocComment(cursor),
       );
@@ -336,5 +337,5 @@ int _compoundMembersVisitor(clang_types.CXCursor cursor,
 }
 
 String _compoundTypeDebugName(CompoundType compoundType) {
-  return compoundType == CompoundType.struct ? "Struct" : "Union";
+  return compoundType == CompoundType.struct ? "struct" : "union";
 }

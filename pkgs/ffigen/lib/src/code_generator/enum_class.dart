@@ -70,16 +70,16 @@ class EnumClass extends BindingType {
       s.writeln('${indent}$enumValueName');
     }
     s.writeln();
-    s.writeln('pub fun ${typeName}/int(i: ${typeName}): int');
+    s.writeln('pub fun ${typeName}/int(i: ${typeName}): int32');
     s.writeln('  match i');
     for (final ec in enumConstants) {
       final enumValueName = names[ec];
-      s.writeln('    ${enumValueName} -> ${ec.value}');
+      s.writeln('    ${enumValueName} -> ${ec.value}.int32');
     }
 
     s.writeln();
-    s.writeln('pub fun int/${typeName}(i: int): exn ${typeName}');
-    s.writeln('  match i');
+    s.writeln('pub fun int/${typeName}(i: int32): exn ${typeName}');
+    s.writeln('  match i.int');
     for (final ec in enumConstants) {
       final enumValueName = names[ec];
       s.writeln('    ${ec.value} -> ${enumValueName}');
@@ -103,19 +103,23 @@ class EnumClass extends BindingType {
   String getKokaExternType(Writer w) => nativeType.getKokaExternType(w);
 
   @override
-  String getKokaFFIType(Writer w) => nativeType.getKokaFFIType(w);
+  String getKokaFFIType(Writer w) => name;
+
   @override
   String getKokaWrapperType(Writer w) => nativeType.getKokaWrapperType(w);
 
   @override
   String convertExternTypeToFFI(Writer w, String value) {
-    return nativeType.convertExternTypeToFFI(w, value);
+    return '$value.int/$name';
   }
 
   @override
   String convertFFITypeToExtern(Writer w, String value) {
-    return nativeType.convertFFITypeToExtern(w, value);
+    return '$value.$name/int';
   }
+
+  @override
+  Set<String> get convertExternToFFIEffects => {'exn'};
 
   @override
   bool get sameExternAndFFIType => nativeType.sameExternAndFFIType;

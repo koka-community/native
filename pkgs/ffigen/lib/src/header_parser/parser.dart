@@ -33,6 +33,7 @@ Library parse(Config c) {
     generateForPackageObjectiveC: c.generateForPackageObjectiveC,
     packingOverride: c.structPackingOverride,
     libraryImports: c.libraryImports.values.toSet(),
+    generateCompoundMemberAccessors: c.generateCompoundMemberAccessors,
   );
 
   return library;

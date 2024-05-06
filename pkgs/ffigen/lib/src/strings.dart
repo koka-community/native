@@ -75,6 +75,7 @@ const objcInterfaces = 'objc-interfaces';
 
 const excludeAllByDefault = 'exclude-all-by-default';
 const generateForPackageObjectiveC = 'generate-for-package-objective-c';
+const generateCompoundMemberAccessors = 'generate-compound-member-accessors';
 
 // Sub-fields of Declarations.
 const include = 'include';
