@@ -39,5 +39,6 @@ class Struct extends Compound {
     super.members,
     super.isInternal,
     super.isUnnamed,
+    super.isAnonymous,
   }) : super(compoundType: CompoundType.struct);
 }

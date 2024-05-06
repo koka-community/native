@@ -34,6 +34,7 @@ abstract class Compound extends BindingType {
   bool get isStruct => compoundType == CompoundType.struct;
   bool get isUnion => compoundType == CompoundType.union;
   final bool isUnnamed;
+  final bool isAnonymous;
   Compound({
     super.usr,
     super.originalName,
@@ -45,6 +46,7 @@ abstract class Compound extends BindingType {
     List<Member>? members,
     super.isInternal,
     this.isUnnamed = false,
+    this.isAnonymous = false,
   }) : members = members ?? [];
 
   factory Compound.fromType({
@@ -57,6 +59,7 @@ abstract class Compound extends BindingType {
     String? dartDoc,
     List<Member>? members,
     bool isUnnamed = false,
+    bool isAnonymous = false,
   }) {
     switch (type) {
       case CompoundType.struct:
@@ -69,6 +72,7 @@ abstract class Compound extends BindingType {
           dartDoc: dartDoc,
           members: members,
           isUnnamed: isUnnamed,
+          isAnonymous: isAnonymous,
         );
       case CompoundType.union:
         return Union(
@@ -80,6 +84,7 @@ abstract class Compound extends BindingType {
           dartDoc: dartDoc,
           members: members,
           isUnnamed: isUnnamed,
+          isAnonymous: isAnonymous,
         );
     }
   }
@@ -291,8 +296,11 @@ abstract class Compound extends BindingType {
         string: s.toString());
   }
 
-  late final cfulltype =
-      isStruct ? 'struct $originalName' : 'union $originalName';
+  late final cfulltype = isAnonymous
+      ? originalName
+      : isStruct
+          ? 'struct $originalName'
+          : 'union $originalName';
 
   @override
   void addDependencies(Set<Binding> dependencies) {

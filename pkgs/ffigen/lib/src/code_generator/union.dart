@@ -37,5 +37,6 @@ class Union extends Compound {
     super.dartDoc,
     super.members,
     super.isUnnamed,
+    super.isAnonymous,
   }) : super(compoundType: CompoundType.union);
 }

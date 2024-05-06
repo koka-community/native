@@ -131,9 +131,10 @@ Compound? parseCompoundDeclaration(
       return Compound.fromType(
         type: compoundType,
         isUnnamed: true,
-        name: incrementalNamer.name('unnamed-${className}'),
+        name: incrementalNamer.name('unnamed-$className'),
         usr: declUsr,
         dartDoc: getCursorDocComment(cursor),
+        isAnonymous: declUsr.split('@')[1].endsWith('A'),
       );
     } else {
       _logger.finest('unnamed $className declaration');
@@ -147,6 +148,7 @@ Compound? parseCompoundDeclaration(
       originalName: declName,
       name: configDecl.renameUsingConfig(declName),
       dartDoc: getCursorDocComment(cursor),
+      isAnonymous: declUsr.split('@')[1].endsWith('A'),
     );
   }
   return null;

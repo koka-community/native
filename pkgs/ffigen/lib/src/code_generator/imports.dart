@@ -114,7 +114,8 @@ final longLongType = NativeType.other('long long', 'int64', 'int', '0');
 final floatType = NativeType.other('float', 'float32', 'float32', '0.0');
 final doubleType = NativeType.other('double', 'float64', 'float64', '0.0');
 
-final sizeType = NativeType.other('ssize_t', 'ssize_t', 'ssize_t', '0');
+final ssizeType = NativeType.other('ssize_t', 'ssize_t', 'int', '0');
+final sizeType = NativeType.other('size_t', 'ssize_t', 'int', '0');
 final wCharType = NativeType.other('wchar', 'int', 'int', '0');
 final voidStarType = NativeType.other('void*', 'intptr_t', 'intptr_t', '0');
 
