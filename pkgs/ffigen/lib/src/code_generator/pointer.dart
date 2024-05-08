@@ -170,12 +170,12 @@ class ConstantArray extends PointerType {
 
   @override
   String convertFFITypeToExtern(Writer w, String value) {
-    return '$value.cextern/carray/cptr';
+    return '$value.cextern/carray/ptr';
   }
 
   @override
   String convertExternTypeToFFI(Writer w, String value) {
-    return '$value.cextern/cptr/carray';
+    return '$value.cextern/ptr/carray';
   }
 }
 
@@ -199,12 +199,12 @@ class IncompleteArray extends PointerType {
 
   @override
   String convertFFITypeToExtern(Writer w, String value) {
-    return '$value.cextern/carray/cptr';
+    return '$value.cextern/carray/ptr';
   }
 
   @override
   String convertExternTypeToFFI(Writer w, String value) {
-    return '$value.cextern/cptr/carray';
+    return '$value.cextern/ptr/carray';
   }
 }
 

@@ -216,7 +216,7 @@ abstract class Compound extends BindingType {
 
           s.writeln(
               'pub inline fun ${kokaName}p/set-$mKokaName(s: $kokaPointerName, $mKokaName: ${m.type.getKokaFFIType(w)}): ()\n'
-              '  s.cextern/c-pointer/ptr.$kokaName-ptrraw/set-$mKokaName(${m.type.convertFFITypeToExtern(w, mKokaName)})');
+              '  s.$kokaName-ptrraw/set-$mKokaName(${m.type.convertFFITypeToExtern(w, mKokaName)})');
           s.writeln();
 
           s.writeln(

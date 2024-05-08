@@ -180,7 +180,7 @@ class Func extends LookUpBinding {
         // print(
         //     "Wrapper ${nativeFuncName} ${functionType.parameters.map((e) => e.type.runtimeType)} ${returnType}");
         s.writeln('''
-pub fun ffi/$nativeFuncName($dartArgDeclString): $effectsString $dartReturnType
+pub inline fun ffi/$nativeFuncName($dartArgDeclString): $effectsString $dartReturnType
   ${strBuff.toString()}$funcImplCall\n''');
       }
 
