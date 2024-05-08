@@ -47,7 +47,7 @@ class PointerType extends Type {
   String get constPrefix => constQualified ? 'const ' : '';
 
   @override
-  String getKokaExternType(Writer w) => 'intptr_t';
+  String getKokaExternType(Writer w) => 'c-pointer<${child.getKokaFFIType(w)}>';
 
   @override
   String getKokaFFIType(Writer w) => 'c-pointer<${child.getKokaFFIType(w)}>';
@@ -58,10 +58,10 @@ class PointerType extends Type {
 
   // Both the C type and the FFI Dart type are 'Pointer<$cType>'.
   @override
-  bool get sameExternAndFFIType => false;
+  bool get sameExternAndFFIType => true;
 
   @override
-  bool get sameWrapperAndExternType => false;
+  bool get sameWrapperAndExternType => true;
 
   @override
   bool get sameWrapperAndFFIType => true;
@@ -74,12 +74,12 @@ class PointerType extends Type {
 
   @override
   String convertFFITypeToExtern(Writer w, String value) {
-    return '$value.cextern/c-pointer/ptr';
+    return '$value';
   }
 
   @override
   String convertExternTypeToFFI(Writer w, String value) {
-    return 'C-pointer($value)';
+    return '$value';
   }
 
   @override
