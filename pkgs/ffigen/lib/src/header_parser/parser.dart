@@ -25,6 +25,7 @@ Library parse(Config c) {
   final bindings = parseToBindings(c);
 
   final library = Library(
+    generateWasmDefault: !c.isWasmCompatible,
     bindings: bindings,
     name: c.wrapperName,
     description: c.wrapperDocComment,

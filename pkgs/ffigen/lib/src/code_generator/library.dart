@@ -32,6 +32,7 @@ class Library {
     bool generateForPackageObjectiveC = false,
     StructPackingOverride? packingOverride,
     Set<LibraryImport>? libraryImports,
+    required bool generateWasmDefault,
     bool generateCompoundMemberAccessors = true,
   }) {
     _findBindings(bindings, sort);
@@ -76,6 +77,7 @@ class Library {
         this.bindings.whereType<NoLookUpBinding>().toList();
 
     _writer = Writer(
+      generateWasmDefault: generateWasmDefault,
       lookUpBindings: lookupBindings,
       ffiNativeBindings: nativeBindings,
       nativeAssetId: nativeConfig?.assetId,

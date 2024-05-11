@@ -55,6 +55,7 @@ const entryPoints = 'entry-points';
 const includeDirectives = 'include-directives';
 
 const compilerOpts = 'compiler-opts';
+const isWasmCompatible = 'is-wasm-compatible';
 
 const compilerOptsAuto = 'compiler-opts-automatic';
 // Sub-fields of compilerOptsAuto.
@@ -82,6 +83,7 @@ const include = 'include';
 const exclude = 'exclude';
 const rename = 'rename';
 const memberRename = 'member-rename';
+const memberExclude = 'member-exclude';
 const symbolAddress = 'symbol-address';
 
 // Nested under `functions`

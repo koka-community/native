@@ -114,6 +114,11 @@ abstract class Type {
   /// that default values aren't supported for this type, eg void.
   String? getDefaultValue(Writer w) => null;
 
+  /// Returns a string of code that creates a default value for this type. For
+  /// example, for int types this returns the string '0'. A null return means
+  /// that default values aren't supported for this type, eg void.
+  String? getCDefaultValue(Writer w) => null;
+
   Set<String> get convertExternToFFIEffects => {};
 }
 
@@ -194,6 +199,9 @@ abstract class BindingType extends NoLookUpBinding implements Type {
 
   @override
   String? getDefaultValue(Writer w) => null;
+
+  @override
+  String? getCDefaultValue(Writer w) => null;
 
   @override
   Set<String> get convertExternToFFIEffects => {};

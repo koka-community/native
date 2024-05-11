@@ -168,13 +168,15 @@ class Func extends LookUpBinding {
       if (valueReturn) {
         s.writeln(
             '''pub extern external/$nativeFuncName($externArgDeclString): $externReturnType
-  c inline "${functionType.returnType.getRawCType(w)}* _s = kk_malloc(sizeof(${functionType.returnType.getRawCType(w)}), kk_context());\\n'''
-            '''*_s = $originalName($ffiArgs);\\n'''
-            '''(intptr_t)_s"\n''');
+  c inline "${functionType.returnType.getRawCType(w)}* _s = kk_malloc(sizeof(${functionType.returnType.getRawCType(w)}), kk_context());'''
+            '''\\n*_s = $originalName($ffiArgs);'''
+            '''\\n(intptr_t)_s"\n'''
+            '''${w.generateWasmDefault ? '''  wasm inline "(intptr_t)0"''' : ''}''');
       } else {
         s.writeln(
             '''pub extern external/$nativeFuncName($externArgDeclString): $externReturnType
-  c inline "(${returnType.isPointerType ? 'intptr_t' : returnType.getRawCType(w)})$originalName($ffiArgs)"\n''');
+  c inline "(${returnType.isPointerType ? 'intptr_t' : returnType.getRawCType(w)})$originalName($ffiArgs)"\n'''
+            '''${w.generateWasmDefault ? '''  wasm inline "${returnType.getCDefaultValue(w)}"\n''' : ''}''');
       }
       if (needsWrapper) {
         // print(

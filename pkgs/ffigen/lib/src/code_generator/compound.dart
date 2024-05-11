@@ -161,7 +161,8 @@ abstract class Compound extends BindingType {
 
     if (!(isUnion || isIncomplete || isOpaque || isUnnamed)) {
       s.writeln('pub extern $kokaName/size-of(c: c-null<$kokaFfiName>): int32\n'
-          '  c inline "sizeof($cfulltype)"\n');
+              '  c inline "sizeof($cfulltype)"\n' +
+          (w.generateWasmDefault ? '  wasm inline "0"\n' : ''));
 
       s.writeln('pub fun ${kokaName}c(): $kokaOwnedName\n'
           '  malloc(?size-of=$kokaName/size-of)');
@@ -190,7 +191,10 @@ abstract class Compound extends BindingType {
           }
           s.writeln(
               'pub inline extern $kokaName-ptrraw/$mKokaName(s: intptr_t): ${m.type.getKokaExternType(w)}\n'
-              '  c inline "(${m.type.isPointerType ? 'intptr_t' : m.type.getRawCType(w)})((($cfulltype*)#1)->${m.originalName})"');
+                      '  c inline "(${m.type.isPointerType ? 'intptr_t' : m.type.getRawCType(w)})((($cfulltype*)#1)->${m.originalName})"\n' +
+                  (w.generateWasmDefault
+                      ? '  wasm inline "${m.type.getCDefaultValue(w)}"\n'
+                      : ''));
           s.writeln();
           final convertEffects =
               '<${m.type.convertExternToFFIEffects.join(',')}>';
@@ -211,7 +215,8 @@ abstract class Compound extends BindingType {
 
           s.writeln(
               'pub inline extern $kokaName-ptrraw/set-$mKokaName(s: intptr_t, $mKokaName: ${m.type.getKokaExternType(w)}): ()\n'
-              '  c inline "(($cfulltype*)#1)->${m.originalName} = (${m.type.getRawCType(w)})#2"');
+                      '  c inline "(($cfulltype*)#1)->${m.originalName} = (${m.type.getRawCType(w)})#2"\n' +
+                  (w.generateWasmDefault ? '  wasm inline "kk_Unit"' : ''));
           s.writeln();
 
           s.writeln(

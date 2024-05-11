@@ -208,6 +208,9 @@ class Typealias extends BindingType {
   String? getDefaultValue(Writer w) => type.getDefaultValue(w);
 
   @override
+  String? getCDefaultValue(Writer w) => type.getDefaultValue(w);
+
+  @override
   // TODO: implement isPointerType
   bool get isPointerType => typealiasType.isPointerType;
 }

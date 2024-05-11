@@ -18,6 +18,8 @@ class Writer {
   final List<Binding> lookUpBindings;
   final bool generateCompoundMemberAccessors;
 
+  final bool generateWasmDefault;
+
   /// Holds bindings, which lookup symbols through `FfiNative`.
   final List<Binding> ffiNativeBindings;
 
@@ -124,6 +126,7 @@ class Writer {
     this.classDocComment,
     this.header,
     required this.generateForPackageObjectiveC,
+    required this.generateWasmDefault,
   }) {
     final globalLevelNameSet = noLookUpBindings.map((e) => e.name).toSet();
     final wrapperLevelNameSet = lookUpBindings.map((e) => e.name).toSet();

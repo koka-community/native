@@ -95,33 +95,37 @@ final objcPkgImport = LibraryImport(
     importPathWhenImportedByPackageObjC: '../objective_c.dart');
 final self = LibraryImport('self', '');
 
-final voidType = NativeType.other('void', '()', '()', '()');
+final voidType = NativeType.other('void', '()', '()', '()', 'kk_Unit');
 
-final unsignedCharType = NativeType.other('unsigned char', 'int8', 'int', '0');
-final signedCharType = NativeType.other('char', 'int8', 'int', '0');
-final charType = NativeType.other('char', 'int8', 'int', '0');
+final unsignedCharType =
+    NativeType.other('unsigned char', 'int8', 'int', '0', '0');
+final signedCharType = NativeType.other('char', 'int8', 'int', '0', '0');
+final charType = NativeType.other('char', 'int8', 'int', '0', '0');
 final unsignedShortType =
-    NativeType.other('unsigned short', 'int16', 'int', '0');
-final shortType = NativeType.other('short', 'int16', 'int', '0');
-final unsignedIntType = NativeType.other('unsigned int', 'int32', 'int', '0');
-final intType = NativeType.other('int', 'int32', 'int', '0');
-final unsignedLongType = NativeType.other('unsigned long', 'int64', 'int', '0');
-final longType = NativeType.other('long', 'int64', 'int', '0');
+    NativeType.other('unsigned short', 'int16', 'int', '0', '0');
+final shortType = NativeType.other('short', 'int16', 'int', '0', '0');
+final unsignedIntType =
+    NativeType.other('unsigned int', 'int32', 'int', '0', '0');
+final intType = NativeType.other('int', 'int32', 'int', '0', '0');
+final unsignedLongType =
+    NativeType.other('unsigned long', 'int64', 'int', '0', '0');
+final longType = NativeType.other('long', 'int64', 'int', '0', '0');
 final unsignedLongLongType =
-    NativeType.other('unsigned long long', 'int64', 'int', '0');
-final longLongType = NativeType.other('long long', 'int64', 'int', '0');
+    NativeType.other('unsigned long long', 'int64', 'int', '0', '0');
+final longLongType = NativeType.other('long long', 'int64', 'int', '0', '0');
 
-final floatType = NativeType.other('float', 'float32', 'float32', '0.0');
-final doubleType = NativeType.other('double', 'float64', 'float64', '0.0');
+final floatType = NativeType.other('float', 'float32', 'float32', '0.0', '0');
+final doubleType = NativeType.other('double', 'float64', 'float64', '0.0', '0');
 
-final ssizeType = NativeType.other('ssize_t', 'ssize_t', 'int', '0');
-final sizeType = NativeType.other('size_t', 'ssize_t', 'int', '0');
-final wCharType = NativeType.other('wchar', 'int', 'int', '0');
-final voidStarType = NativeType.other('void*', 'intptr_t', 'intptr_t', '0');
+final ssizeType = NativeType.other('ssize_t', 'ssize_t', 'int', '0', '0');
+final sizeType = NativeType.other('size_t', 'ssize_t', 'int', '0', '0');
+final wCharType = NativeType.other('wchar', 'int', 'int', '0', '0');
+final voidStarType =
+    NativeType.other('void*', 'intptr_t', 'intptr_t', '0', '0');
 
 final objCObjectType =
-    NativeType.other('ObjCObject', 'ObjCObject', 'ObjCObject', null);
+    NativeType.other('ObjCObject', 'ObjCObject', 'ObjCObject', null, null);
 final objCSelType =
-    NativeType.other('ObjCObject', 'ObjCSelector', 'ObjCSelector', null);
+    NativeType.other('ObjCObject', 'ObjCSelector', 'ObjCSelector', null, null);
 final objCBlockType =
-    NativeType.other('ObjCObject', 'ObjCBlock', 'ObjCBlock', null);
+    NativeType.other('ObjCObject', 'ObjCBlock', 'ObjCBlock', null, null);

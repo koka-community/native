@@ -31,10 +31,11 @@ class EnumClass extends BindingType {
   EnumClass({
     super.usr,
     super.originalName,
-    required super.name,
+    required String name,
     super.dartDoc,
     List<EnumConstant>? enumConstants,
-  }) : enumConstants = enumConstants ?? [];
+  })  : enumConstants = enumConstants ?? [],
+        super(name: '$name-enum');
 
   @override
   BindingString toBindingString(Writer w) {
@@ -51,7 +52,7 @@ class EnumClass extends BindingType {
 
     // Print enclosing class.
     final typeName = enclosingClassName;
-    s.writeln('type ${typeName}');
+    s.writeln('pub type $typeName');
     const indent = '  ';
     final names = {
       for (final ec in enumConstants)
@@ -67,22 +68,22 @@ class EnumClass extends BindingType {
         s.writeAll(ec.dartDoc!.split('\n'), '\n$indent// ');
         s.write('\n');
       }
-      s.writeln('${indent}$enumValueName');
+      s.writeln('$indent$enumValueName');
     }
     s.writeln();
-    s.writeln('pub fun ${typeName}/int(i: ${typeName}): int32');
+    s.writeln('pub fun $typeName/int(i: $typeName): int32');
     s.writeln('  match i');
     for (final ec in enumConstants) {
       final enumValueName = names[ec];
-      s.writeln('    ${enumValueName} -> ${ec.value}.int32');
+      s.writeln('    $enumValueName -> ${ec.value}.int32');
     }
 
     s.writeln();
-    s.writeln('pub fun int/${typeName}(i: int32): exn ${typeName}');
+    s.writeln('pub fun int/$typeName(i: int32): exn $typeName');
     s.writeln('  match i.int');
     for (final ec in enumConstants) {
       final enumValueName = names[ec];
-      s.writeln('    ${ec.value} -> ${enumValueName}');
+      s.writeln('    ${ec.value} -> $enumValueName');
     }
     s.writeln();
     return BindingString(

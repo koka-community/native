@@ -83,6 +83,11 @@ class PointerType extends Type {
   }
 
   @override
+  String getDefaultValue(Writer w) => '0';
+  @override
+  String getCDefaultValue(Writer w) => '0';
+
+  @override
   bool get isPointerType => true;
 }
 

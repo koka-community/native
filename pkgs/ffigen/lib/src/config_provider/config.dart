@@ -187,6 +187,18 @@ class Config {
   bool get generateCompoundMemberAccessors => _generateCompoundMemberAccessors;
   late bool _generateCompoundMemberAccessors;
 
+  bool get isWasmCompatible => _isWasmCompatible;
+  late bool _isWasmCompatible;
+
+  Includer get structOpaque => _structOpaqueIncluder;
+  late Includer _structOpaqueIncluder;
+
+  Map<RegExp, List<RegExp>>? get structMemberExclude => _structMemberExclude;
+  late Map<RegExp, List<RegExp>>? _structMemberExclude;
+
+  Map<RegExp, List<RegExp>>? get unionMemberExclude => _unionMemberExclude;
+  late Map<RegExp, List<RegExp>>? _unionMemberExclude;
+
   /// Where to ignore compiler warnings/errors in source header files.
   bool ignoreSourceErrors = false;
 
@@ -245,6 +257,12 @@ class Config {
           ),
           defaultValue: (node) => findDylibAtDefaultLocations(),
           resultOrDefault: (node) => _libclangDylib = node.value as String,
+        ),
+        HeterogeneousMapEntry(
+          key: strings.isWasmCompatible,
+          valueConfigSpec: BoolConfigSpec(),
+          defaultValue: (node) => true,
+          resultOrDefault: (node) => _isWasmCompatible = node.value as bool,
         ),
         HeterogeneousMapEntry(
             key: strings.output,
@@ -403,41 +421,52 @@ class Config {
               },
             )),
         HeterogeneousMapEntry(
-            key: strings.structs,
-            valueConfigSpec: HeterogeneousMapConfigSpec(
-              entries: [
-                ..._includeExcludeProperties(),
-                ..._renameProperties(),
-                ..._memberRenameProperties(),
-                _dependencyOnlyHeterogeneousMapKey(),
-                HeterogeneousMapEntry(
-                  key: strings.structPack,
-                  valueConfigSpec: MapConfigSpec(
-                    keyValueConfigSpecs: [
-                      (
-                        keyRegexp: '.*',
-                        valueConfigSpec: EnumConfigSpec(
-                          allowedValues: {'none', 1, 2, 4, 8, 16},
-                          transform: (node) =>
-                              node.value == 'none' ? null : node.value,
-                        ),
-                      )
-                    ],
-                    transform: (node) =>
-                        structPackingOverrideExtractor(node.value),
-                  ),
-                  defaultValue: (node) => StructPackingOverride(),
-                  resultOrDefault: (node) => _structPackingOverride =
-                      node.value as StructPackingOverride,
+          key: strings.structs,
+          valueConfigSpec: HeterogeneousMapConfigSpec(
+            entries: [
+              ..._includeExcludeProperties(),
+              ..._renameProperties(),
+              ..._memberRenameProperties(),
+              ..._memberExclude(),
+              _dependencyOnlyHeterogeneousMapKey(),
+              HeterogeneousMapEntry(
+                key: strings.opaqueCompoundDependencies,
+                valueConfigSpec: _includeExcludeObject(),
+                defaultValue: (node) => Includer(),
+              ),
+              HeterogeneousMapEntry(
+                key: strings.structPack,
+                valueConfigSpec: MapConfigSpec(
+                  keyValueConfigSpecs: [
+                    (
+                      keyRegexp: '.*',
+                      valueConfigSpec: EnumConfigSpec(
+                        allowedValues: {'none', 1, 2, 4, 8, 16},
+                        transform: (node) =>
+                            node.value == 'none' ? null : node.value,
+                      ),
+                    )
+                  ],
+                  transform: (node) =>
+                      structPackingOverrideExtractor(node.value),
                 ),
-              ],
-              result: (node) {
-                _structDecl = declarationConfigExtractor(
-                    node.value as Map<dynamic, dynamic>);
-                _structDependencies = (node.value
-                    as Map)[strings.dependencyOnly] as CompoundDependencies;
-              },
-            )),
+                defaultValue: (node) => StructPackingOverride(),
+                resultOrDefault: (node) => _structPackingOverride =
+                    node.value as StructPackingOverride,
+              ),
+            ],
+            result: (node) {
+              _structDecl = declarationConfigExtractor(
+                  node.value as Map<dynamic, dynamic>);
+              _structDependencies = (node.value as Map)[strings.dependencyOnly]
+                  as CompoundDependencies;
+              _structOpaqueIncluder = (node.value
+                  as Map)[strings.opaqueCompoundDependencies] as Includer;
+              _structMemberExclude = (node.value as Map)[strings.memberExclude]
+                  as Map<RegExp, List<RegExp>>?;
+            },
+          ),
+        ),
         HeterogeneousMapEntry(
             key: strings.unions,
             valueConfigSpec: HeterogeneousMapConfigSpec(
@@ -445,6 +474,7 @@ class Config {
                 ..._includeExcludeProperties(),
                 ..._renameProperties(),
                 ..._memberRenameProperties(),
+                ..._memberExclude(),
                 _dependencyOnlyHeterogeneousMapKey(),
               ],
               result: (node) {
@@ -452,6 +482,8 @@ class Config {
                     node.value as Map<dynamic, dynamic>);
                 _unionDependencies = (node.value as Map)[strings.dependencyOnly]
                     as CompoundDependencies;
+                _unionMemberExclude = (node.value as Map)[strings.memberExclude]
+                    as Map<RegExp, List<RegExp>>?;
               },
             )),
         HeterogeneousMapEntry(
@@ -889,6 +921,28 @@ class Config {
               ),
             ),
           ],
+        ),
+      ),
+    ];
+  }
+
+  List<HeterogeneousMapEntry> _memberExclude() {
+    return [
+      HeterogeneousMapEntry(
+        key: strings.memberExclude,
+        valueConfigSpec: MapConfigSpec<List<String>, Map<RegExp, List<RegExp>>>(
+          schemaDefName: "memberExclude",
+          keyValueConfigSpecs: [
+            (
+              keyRegexp: ".*",
+              valueConfigSpec:
+                  ListConfigSpec(childConfigSpec: StringConfigSpec())
+            ),
+          ],
+          transform: (m) => m.value.map(
+            (key, values) => MapEntry(
+                RegExp(key as String), values.map((k) => RegExp(k)).toList()),
+          ),
         ),
       ),
     ];
