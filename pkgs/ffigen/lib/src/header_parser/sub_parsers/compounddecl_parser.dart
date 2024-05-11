@@ -171,7 +171,9 @@ void fillCompoundMembersIfNeeded(
   // Skip dependencies if already seen OR user has specified `dependency-only`
   // as opaque AND this is a pointer reference AND the declaration was not
   // included according to config (ignoreFilter).
-  final skipDependencies = compound.parsedDependencies ||
+  final skipDependencies = config.structOpaque
+          .shouldInclude(compound.originalName) ||
+      compound.parsedDependencies ||
       (pointerReference &&
           ignoreFilter &&
           ((compoundType == CompoundType.struct &&
