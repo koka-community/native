@@ -130,6 +130,8 @@ class EnumClass extends BindingType {
 
   @override
   String? getDefaultValue(Writer w) => '0';
+  @override
+  String? getCDefaultValue(Writer w) => '0';
 }
 
 /// Represents a single value in an enum.
